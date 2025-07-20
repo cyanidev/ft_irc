@@ -8,5 +8,8 @@ int main(int argc, char** argv)
 		std::cout << "Error in args, try: ./ircserv <port> <psswrd>" << std::endl;
 		return (1);
 	}
+
+
+	
 	return (0);
 }
