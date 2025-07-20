@@ -1,0 +1,27 @@
+-server accepts <port> <psswrd> as args
+-multiple simultaneous clients
+-autt with nickname and username
+-join channels, send/receive messages
+-broadcast messages in a channel to allclients in that channel
+-support operators and regular users
+-implement operator commands KICK INVITE MODE(flags i/t/k/o/l)
+-clean handling of partial packets and errors
+
+x) makefile
+) implement socket setup (socket, bind, listen, accept)
+) implement non-blocking mode and poll() handling
+) design Client structure (fd, nickname, autt status, joined channels)
+) handle receiving and aggregating partial  messages
+) ensure server handles multiple clients without blocking
+) create error handling and connection cleanup routines
+
+) implement message parsing (NICK, USER, JOIN, PRIVMSG)
+) implement channel management (create, join, leave, bc)
+) implement operator cmds (KICK, INVITE, TOPIC, MODE with flags)
+) manage user roles (regular vs op)
+) implement cmd handlers and integrate with strcutures
+
+
+bonus:
+file transfer
+implementing a bot
