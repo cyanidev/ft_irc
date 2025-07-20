@@ -7,7 +7,7 @@
 -implement operator commands KICK INVITE MODE(flags i/t/k/o/l)
 -clean handling of partial packets and errors
 
-x) makefile
+x) makefile (check to also delete obj folder)
 ) implement socket setup (socket, bind, listen, accept)
 ) implement non-blocking mode and poll() handling
 ) design Client structure (fd, nickname, autt status, joined channels)
