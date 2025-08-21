@@ -18,6 +18,8 @@ class Server
 
 		std::string _password;
 
+		std::vector<class channel *>	channels;
+
 	
 	public:
 
@@ -26,6 +28,14 @@ class Server
 
 		void socketInit();
 		void start();
+
+		// Handle operations
+		void	handleJoin(const std::string& name, const std::string& topic, class client* creator);
+		void	handleKick(const std::string& name, class client* user);
+		void	handleInvite(const std::string& name, class client* user);
+		void	handleTopic(const std::string& name, const std::string& topic);
+		void	handleMode(const std::string& name, const std::string& mode, bool enable);
+		void	handleMode(const std::string& channel, const std::string& mode, int number);
 
 };
 
