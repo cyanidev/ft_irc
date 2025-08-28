@@ -20,6 +20,8 @@ In IRC, if the message starts with :, it means
 #include <exception>
 #include "Tokenizer.hpp"
 
+enum mode: {Mandatory, Optional, List, ListOptional, MultiOptional, Special};
+
 class Parsing
 {
 	private:
