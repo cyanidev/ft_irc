@@ -1,13 +1,16 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <string>
-#include <cstring>
-#include <iostream>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <netinet/in.h>
+# include <string>
+# include <vector>
+# include <stdexcept>
+# include <cstring>      // para memset
+# include <unistd.h>     // para close
+# include <fcntl.h>      // para fcntl
+# include <netinet/in.h> // para sockaddr_in, htons, etc.
+# include <sys/socket.h> // para socket, bind, listen, accept
+# include <poll.h>       // para poll, pollfd
+
 
 class Server
 {
@@ -17,17 +20,18 @@ class Server
 		int _socketfd;
 
 		std::string _password;
+		std::vector<struct pollfd> _poll_fds;
 
-		std::vector<class channel *>	channels;
-
+		void socketInit();
 	
 	public:
 
 		Server(const int &port, const std::string &password);
 		~Server();
 
-		void socketInit();
+		
 		void start();
+		int getSocketFD() const;
 
 		// Handle operations
 		void	handleJoin(const std::string& name, const std::string& topic, class client* creator);
