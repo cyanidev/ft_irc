@@ -17,10 +17,16 @@ In IRC, if the message starts with :, it means
 #ifndef PARSING_H
 #define PARSING_H
 
+#include <algorithm>
+#include <cctype>
+#include <cstring>
 #include <exception>
-#include <map>
+#include <stdexcept>
 #include <string>
+#include <vector>
 #include <list>
+#include <iostream>
+#include <map>
 #include "Tokenizer.hpp"
 
 enum mode {Mandatory, Optional, List, ListOptional, MultiOptional, Special};

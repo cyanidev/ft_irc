@@ -1,12 +1,4 @@
 #include "Parsing.hpp"
-#include <algorithm>
-#include <cctype>
-#include <cstring>
-#include <exception>
-#include <stdexcept>
-#include <string>
-#include <vector>
-#include <list>
 #include "Tokenizer.hpp"
 
 #define NUMBER_CMD 24
@@ -14,7 +6,7 @@
 std::string commands[NUMBER_CMD] = {"ADMIN", "INFO", "VERSION", "USERS", "NICK", "PRIVMSG", "USER", "QUIT", "JOIN", "LIST", "NAMES", "SUMMON", "KICK", "PART", "MODE", "CAP", "PASS", "WHOIS", "INVITE", "TOPIC", "PING", "PONG"};
 std::string params[NUMBER_CMD][10] = {{"target"}, {"target"}, {}, {}, {"nickname"}, {"msgtarget", "text to be sent"}, {"user", "mode", "unused", "realname"}, {"Quit Message"}, {"channel", "key"}, {"channel"}, {"channel", "target"}, {"user", "target", "channel"}, {"channel", "user", "comment"}, {"channel", "Part Message"}, {"target", "modestring", "mode arguments"}, {"a"}, {"password"}, {"channel", "user", "comment"}, {"nickname", "channel"}, {"channel", "topic"}, {"token"}, {"token"}};
 
-mode params_states[NUMBER_CMD][10] = {{Optional}, {Optional}, {}, {}, {Mandatory}, {Mandatory, Optional}, {Mandatory, Mandatory, Mandatory, Mandatory}, {Optional}, {List, ListOptional}, {ListOptional}, {ListOptional, Optional}, {Mandatory, Optional, Optional}, {List, List, Optional}, {List, Optional}, {Mandatory, Optional, MultiOptional}, {Optional}, {Optional}, {Mandatory, List, Optional}, {Mandatory, Mandatory}, {Mandatory, Optional}, {Mandatory}, {Mandatory}};
+mode params_states[NUMBER_CMD][10] = {{Optional}, {Optional}, {}, {}, {Mandatory}, {Mandatory, Optional}, {Mandatory, Mandatory, Mandatory, Mandatory}, {Optional}, {List, ListOptional}, {ListOptional}, {ListOptional, Optional}, {Mandatory, Optional, Optional}, {List, List, Optional}, {List, Optional}, {Mandatory, Optional, MultiOptional}, {Optional}, {Mandatory}, {Mandatory, List, Optional}, {Mandatory, Mandatory}, {Mandatory, Optional}, {Mandatory}, {Mandatory}};
 
 // Helper functions
 bool is_in_array(const std::string& value, const std::string array[], size_t size) {
@@ -46,6 +38,7 @@ Parsing::Parsing(std::string raw_content) : inputTokenizer(Tokenizer(raw_content
 	command = tokens[0];
 	command_to_upper(command);
 	move(); // skip past the command, so current points at first argument
+	parse();
 }
 
 void Parsing::command_to_upper(std::string & command)
@@ -64,8 +57,7 @@ void Parsing::parse()
 	{
 		throw Parsing::UnknownCommandException();
 	}
-
-	if (is_in_array(command, commands, NUMBER_CMD))
+	else
 	{
 		try
 		{

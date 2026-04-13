@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Parsing.hpp"
 
 Server::Server(const int &port, const std::string &password)
     : _port(port), _password(password)
@@ -64,6 +65,7 @@ void Server::start()
 				client_poll.fd = client_fd;
 				client_poll.events = POLLIN;
 				_poll_fds.push_back(client_poll);
+				std::cout << "Welcome to Irc" << std::endl;
 			}
 			// Si no es el servidor, entonces es un cliente con datos listos para leer
 			else if (_poll_fds[i].revents & POLLIN) 
@@ -89,7 +91,8 @@ void Server::start()
 					msg.erase(msg.size() - 1); 
 				if (!msg.empty() && msg[msg.size() - 1] == '\r')
 					msg.erase(msg.size() - 1);
-				std::cout << "[recv] " << msg; 
+				Parsing	parse(msg);
+				//std::cout << "[recv] " << msg << std::endl; 
 				send(_poll_fds[i].fd, msg.c_str(), msg.size(), 0);
 			}
 		}
