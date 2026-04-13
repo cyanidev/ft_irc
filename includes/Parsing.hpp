@@ -18,9 +18,12 @@ In IRC, if the message starts with :, it means
 #define PARSING_H
 
 #include <exception>
+#include <map>
+#include <string>
+#include <list>
 #include "Tokenizer.hpp"
 
-enum mode: {Mandatory, Optional, List, ListOptional, MultiOptional, Special};
+enum mode {Mandatory, Optional, List, ListOptional, MultiOptional, Special};
 
 class Parsing
 {
@@ -74,7 +77,7 @@ class Parsing
 		void parse_complex(); // multi-argument commands like PRIVMSG
 		bool set_current_arg(std::string arg_name, mode arg_type);
 		std::list<std::string> get_rest_tokens(std::string current_token);
-		std::list<std::string> arg_to_list(std::string current_token);
+		std::list<std::string> arg_to_list(const std::string& current_token);
 		std::string get(std::string arg_name);
 		std::list<std::string> get_list(std::string arg_name);
 

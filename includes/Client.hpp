@@ -3,12 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbolivar <sbolivar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: Andie <Andie@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/05 13:13:30 by pollo             #+#    #+#             */
-/*   Updated: 2026/04/11 17:50:31 by sbolivar         ###   ########.fr       */
+/*   Updated: 2026/04/13 17:29:50 by Andie            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
 #include <iostream>
 #include <sys/socket.h>
@@ -19,8 +22,7 @@
 #include <poll.h>
 #include <vector>
 
-class Server;
-class Channel;
+class Channel; // Forward declaration to avoid circular dependency
 
 class Client {
 
@@ -41,3 +43,4 @@ class Client {
 		const std::string	getUsername() const;
 		
 };
+#endif

@@ -2,20 +2,13 @@
 
 int parsePort(char* arg)
 {
-    try
-    {
-		char *end;
-        int port = strtol(arg, &end, 10);
-        if (port < 1024 || port > 49151)
-        {
-            throw std::out_of_range("Error: Port must be between 1024 and 49151");
-        }
-        return port;
-    }
-    catch (const std::invalid_argument&)
-    {
-        throw std::invalid_argument("Error: Port must be a valid number.");
-    }
+	char* end;
+	long port = strtol(arg, &end, 10);
+	if (*end != '\0')
+		throw std::invalid_argument("Error: Port must be a valid number.");
+	if (port < 1024 || port > 49151)
+		throw std::out_of_range("Error: Port must be between 1024 and 49151");
+	return (int)port;
 }
 
 int main(int argc, char** argv)

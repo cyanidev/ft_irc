@@ -10,7 +10,12 @@ INC = -I includes
 
 SRC = \
       srcs/main.cpp \
-	  srcs/Server.cpp
+	  srcs/Server.cpp \
+	  srcs/Channel.cpp \
+	  srcs/Tokenizer.cpp \
+	  srcs/handleOperation.cpp \
+	  srcs/Parsing.cpp \
+	  srcs/Client.cpp
 
 OBJ = $(SRC:srcs/%.cpp=objs/%.o)
 

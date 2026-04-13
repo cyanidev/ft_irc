@@ -1,18 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   channel.cpp                                        :+:      :+:    :+:   */
+/*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pollo <pollo@student.42.fr>                +#+  +:+       +#+        */
+/*   By: Andie <Andie@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 09:51:45 by pollo             #+#    #+#             */
-/*   Updated: 2025/08/21 15:24:36 by pollo            ###   ########.fr       */
+/*   Updated: 2026/04/13 17:21:38 by Andie            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <algorithm>
 #include "../includes/Channel.hpp"
 
-Channel::Channel(const std::string& name, const std::string& topic, client* creator) {
+Channel::Channel(const std::string& name, const std::string& topic, Client* creator)
+{
     _name = "#" + name;
     _topic = topic;
     _users.push_back(creator);
@@ -27,13 +29,14 @@ Channel::Channel(const std::string& name, const std::string& topic, client* crea
 }
 
 Channel::~Channel() {
+    std::cout << "Channel " << _name << ": deleted" << std::endl;
     _users.clear();
     _operators.clear();
     _bannedUsers.clear();
     _name.clear();
     _topic.clear();
 
-    std::cout << "Channel " << _name << ": deleted" << std::endl;
+
 }
 
 const std::string	Channel::getChannelName() {
@@ -48,20 +51,22 @@ void	Channel::setChannelTopic(const std::string& topic) {
     _topic = topic;
 }
 
-void	Channel::addUser(client* user) {
-    if (std::find(_users.begin(), _users.end(), user) != _users.end()) {
+void	Channel::addUser(Client* user) {
+    if (std::find(_users.begin(), _users.end(), user) != _users.end())
+	{
         std::cout << "User " << user->getNickname() << " is already in Channel " << _name << std::endl;
         return;
     }
-    if (_maxUsers != 0 && _currentUsers >= _maxUsers) {
+    if (_maxUsers != 0 && (int)_users.size() >= _maxUsers)
+	{
         std::cout << "Channel " << _name << " is full. Cannot add user " << user->getNickname() << std::endl;
         return;
     }
-    _users.push_back(user);
+    _users.push_back(user); //añade al vector
     std::cout << "User " << user->getNickname() << " added to Channel " << _name << std::endl;
 }
 
-void	Channel::addOperator(client* user) {
+void	Channel::addOperator(Client* user) {
     if (_operators.find(user) != _operators.end()) {
         return;
     }
@@ -70,7 +75,7 @@ void	Channel::addOperator(client* user) {
     std::cout << "User " << user->getNickname() << " is now an operator in Channel " << _name << std::endl;
 }
 
-void	Channel::removeOperator(client* user) {
+void	Channel::removeOperator(Client* user) {
     if (_operators.find(user) == _operators.end()) {
         return;
     }
@@ -79,8 +84,8 @@ void	Channel::removeOperator(client* user) {
     std::cout << "User " << user->getNickname() << " is no longer an operator in Channel " << _name << std::endl;
 }
 
-void	Channel::removeUser(client* user) {
-    std::vector<client*>::iterator it = std::find(_users.begin(), _users.end(), user);
+void	Channel::removeUser(Client* user) {
+    std::vector<Client*>::iterator it = std::find(_users.begin(), _users.end(), user);
     if (it == _users.end()) {
         std::cout << "User " << user->getNickname() << " not found in Channel " << _name << std::endl;
         return;
@@ -93,7 +98,7 @@ void	Channel::removeUser(client* user) {
     std::cout << "User " << user->getNickname() << " removed from Channel " << _name << std::endl;
 }
 
-void	Channel::banUser(client* user) {
+void	Channel::banUser(Client* user) {
     if (_bannedUsers.find(user) != _bannedUsers.end()) {
         return;
     }
@@ -113,11 +118,11 @@ bool	Channel::getRestrictedTopic() const {
 }
 
 bool	Channel::getChannelKeyRequired() const {
-    return _ChannelKeyRequired;
+    return _channelKeyRequired;
 }
 
 bool	Channel::getChannelOperatorPrivilege() const {
-    return _ChannelOperatorPrivilege;
+    return _channelOperatorPrivilege;
 }
 
 int		Channel::getMaxUsers() const {
@@ -137,11 +142,11 @@ void	Channel::setRestrictedTopic(bool restricted) {
 }
 
 void	Channel::setChannelKeyRequired(bool keyRequired) {
-    _ChannelKeyRequired = keyRequired;
+    _channelKeyRequired = keyRequired;
 }
 
 void	Channel::setChannelOperatorPrivilege(bool operatorPrivilege) {
-    _ChannelOperatorPrivilege = operatorPrivilege;
+    _channelOperatorPrivilege = operatorPrivilege;
 }
 
 void	Channel::setMaxUsers(int maxUsers) {

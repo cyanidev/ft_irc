@@ -81,9 +81,14 @@ void Server::start()
 					continue;
 				}
 
-                                // Convertir mensage a string,
+                // Convertir mensage a string,
 				buffer[bytes] = '\0';
 				std::string msg(buffer);
+
+				if (!msg.empty() && msg[msg.size() -1] == '\n')
+					msg.erase(msg.size() - 1); 
+				if (!msg.empty() && msg[msg.size() - 1] == '\r')
+					msg.erase(msg.size() - 1);
 				std::cout << "[recv] " << msg; 
 				send(_poll_fds[i].fd, msg.c_str(), msg.size(), 0);
 			}
@@ -96,4 +101,9 @@ int Server::getSocketFD() const
     return _socketfd;
 }
 
-Server::~Server() {};
+Server::~Server()
+{
+    for (size_t i = 0; i < channels.size(); ++i)
+        delete channels[i];
+    close(_socketfd);
+}

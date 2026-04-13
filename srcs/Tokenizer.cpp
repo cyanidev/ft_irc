@@ -1,5 +1,13 @@
 #include "Tokenizer.hpp"
 
+/// ---------------------------------
+// CONVIERTE UN MENSAJE DE IRC RAW EN UN VECTOR DE STRINGS (TOKENS)
+// POR EJEMPLO
+// "PRIVMSG #channel :Holi"
+// se vuelve:
+// ["PRIVMSG", "#channel", "Holi"]
+// ----------------------------------
+
 //content: the raw string to tokenize
 //state: keeps track of the current parsing state (Param, Space, LongParam)
 //current_position: index of the character currently being read

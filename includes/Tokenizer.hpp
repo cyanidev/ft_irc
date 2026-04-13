@@ -1,7 +1,9 @@
 #ifndef TOKENIZER_H
 #define TOKENIZER_H
 
-#include "ft_irc.hpp"
+//#include "ft_irc.hpp"
+#include <string>
+#include <vector>
 
 enum State {Param, Space, LongParam};
 

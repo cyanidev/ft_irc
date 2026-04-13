@@ -5,20 +5,40 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include <vector>
+#include <list>
 #include "Tokenizer.hpp"
 
 #define NUMBER_CMD 24
 
-std::string commands[NUMBER_CMD] = {"ADMIN", "INFO", "VERSION", "USERS", "NICK", "PRIVMSG", "USER", "QUIT", "JOIN", "LIST", "NAMES", "SUMMON", "KICK", "PART", "MODE", "CAP", "PASS", "KICK", "INVITE", "TOPIC", "PING", "PONG"};
+std::string commands[NUMBER_CMD] = {"ADMIN", "INFO", "VERSION", "USERS", "NICK", "PRIVMSG", "USER", "QUIT", "JOIN", "LIST", "NAMES", "SUMMON", "KICK", "PART", "MODE", "CAP", "PASS", "WHOIS", "INVITE", "TOPIC", "PING", "PONG"};
 std::string params[NUMBER_CMD][10] = {{"target"}, {"target"}, {}, {}, {"nickname"}, {"msgtarget", "text to be sent"}, {"user", "mode", "unused", "realname"}, {"Quit Message"}, {"channel", "key"}, {"channel"}, {"channel", "target"}, {"user", "target", "channel"}, {"channel", "user", "comment"}, {"channel", "Part Message"}, {"target", "modestring", "mode arguments"}, {"a"}, {"password"}, {"channel", "user", "comment"}, {"nickname", "channel"}, {"channel", "topic"}, {"token"}, {"token"}};
 
 mode params_states[NUMBER_CMD][10] = {{Optional}, {Optional}, {}, {}, {Mandatory}, {Mandatory, Optional}, {Mandatory, Mandatory, Mandatory, Mandatory}, {Optional}, {List, ListOptional}, {ListOptional}, {ListOptional, Optional}, {Mandatory, Optional, Optional}, {List, List, Optional}, {List, Optional}, {Mandatory, Optional, MultiOptional}, {Optional}, {Optional}, {Mandatory, List, Optional}, {Mandatory, Mandatory}, {Mandatory, Optional}, {Mandatory}, {Mandatory}};
 
+// Helper functions
+bool is_in_array(const std::string& value, const std::string array[], size_t size) {
+    for (size_t i = 0; i < size; ++i) {
+        if (array[i] == value) {
+            return true;
+        }
+    }
+    return false;
+}
 
-Parsing::Parsing(std::string raw_content) : tokenizer(Tokenizer(raw_content)), current(0)
+unsigned int get_array_index(const std::string& value, const std::string array[], size_t size) {
+    for (size_t i = 0; i < size; ++i) {
+        if (array[i] == value) {
+            return i;
+        }
+    }
+    return -1; // or throw exception, but assuming it's found
+}
+
+Parsing::Parsing(std::string raw_content) : inputTokenizer(Tokenizer(raw_content)), current(0)
 {
-	tokenizer.tokenize();
-	tokens = tokenizer.get_tokens();
+	inputTokenizer.tokenize();
+	tokens = inputTokenizer.get_tokens();
 	if (tokens.size() == 0)
 	{
 		throw Parsing::UnknownCommandException();
@@ -173,7 +193,7 @@ std::list<std::string> Parsing::get_rest_tokens( std::string current_token )
 		}
 		catch(std::out_of_range & e)
 		{
-			()e;
+			(void)e;
 			unfinished = false;
 		}
 	}
