@@ -1,16 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   client.hpp                                         :+:      :+:    :+:   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pollo <pollo@student.42.fr>                +#+  +:+       +#+        */
+/*   By: sbolivar <sbolivar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/05 13:13:30 by pollo             #+#    #+#             */
-/*   Updated: 2025/08/21 15:27:28 by pollo            ###   ########.fr       */
+/*   Updated: 2026/04/11 17:50:31 by sbolivar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-#pragma once
 
 #include <iostream>
 #include <sys/socket.h>
@@ -31,7 +29,7 @@ class Client {
         std::string				_nickname;
 		std::string				_username;
         int						_socket;
-        std::vector<channel*>	_channels;
+        std::vector<Channel*>	_channels;
 
     public:
 

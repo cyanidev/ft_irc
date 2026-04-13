@@ -9,7 +9,8 @@ CFLAGS = -Werror -Wextra -Wall -std=c++98 #-g3
 INC = -I includes
 
 SRC = \
-      srcs/main.cpp
+      srcs/main.cpp \
+	  srcs/Server.cpp
 
 OBJ = $(SRC:srcs/%.cpp=objs/%.o)
 

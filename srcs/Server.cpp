@@ -67,16 +67,16 @@ void Server::start()
 			}
 			// Si no es el servidor, entonces es un cliente con datos listos para leer
 			else if (_poll_fds[i].revents & POLLIN) 
-                        {
+            {
                                 // lectura
 				char buffer[512];
-				ssize_t bytes = recv(_poll_fds[i].fd, buffer, sizeof(buffer), 0);
+				ssize_t bytes = recv(_poll_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
 				
                                 // Si no envia nada o falla, se desconecta y elimina.
-                                if (bytes <= 0) 
-                                {
+                if (bytes <= 0) 
+                {
 					close(_poll_fds[i].fd);
-					poll_fds.erase(_poll_fds.begin() + i);
+					_poll_fds.erase(_poll_fds.begin() + i);
 					--i;
 					continue;
 				}
@@ -84,6 +84,8 @@ void Server::start()
                                 // Convertir mensage a string,
 				buffer[bytes] = '\0';
 				std::string msg(buffer);
+				std::cout << "[recv] " << msg; 
+				send(_poll_fds[i].fd, msg.c_str(), msg.size(), 0);
 			}
 		}
 	}
@@ -93,3 +95,5 @@ int Server::getSocketFD() const
 {
     return _socketfd;
 }
+
+Server::~Server() {};

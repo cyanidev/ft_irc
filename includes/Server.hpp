@@ -3,6 +3,8 @@
 
 # include <string>
 # include <vector>
+# include <cstdlib>
+#include <iostream>
 # include <stdexcept>
 # include <cstring>      // para memset
 # include <unistd.h>     // para close
