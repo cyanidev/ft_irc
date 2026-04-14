@@ -60,40 +60,115 @@ void Server::start()
 				// modo no bloqueante
 				fcntl(client_fd, F_SETFL, O_NONBLOCK);
 
+				// crear el objeto Client para la nueva conexión
+				Client* new_client = new Client("", "", client_fd);
+				clients.push_back(new_client);
+
                                 // se registra el nuevo cliente en poll_fds, para que poll() esté atento a lo que envía ese cliente.
 				pollfd client_poll;
 				client_poll.fd = client_fd;
 				client_poll.events = POLLIN;
 				_poll_fds.push_back(client_poll);
-				std::cout << "Welcome to Irc" << std::endl;
+				std::cout << "Welcome to IRC" << std::endl;
+				std::cout << "New client connected: fd=" << client_fd << std::endl;
 			}
 			// Si no es el servidor, entonces es un cliente con datos listos para leer
 			else if (_poll_fds[i].revents & POLLIN) 
             {
-                                // lectura
+                
+				char buffer[512];
+ssize_t bytes = recv(_poll_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+
+if (bytes <= 0)
+{
+    int client_fd = _poll_fds[i].fd;
+    close(client_fd);
+    _clients_buffer.erase(client_fd);
+    removeClientBySocket(client_fd);
+    _poll_fds.erase(_poll_fds.begin() + i);
+    --i;
+    continue;
+}
+
+/*
+			buffer[bytes] = '\0';
+			_clients_buffer[_poll_fds[i].fd] += buffer;
+
+			std::string& buf = _clients_buffer[_poll_fds[i].fd];
+			size_t pos;
+			while ((pos = buf.find("\r\n")) != std::string::npos)
+			{
+				std::string msg = buf.substr(0, pos);
+				buf.erase(0, pos + 2);
+				if (msg.empty())
+					continue;
+				try
+				{
+					Parsing p(msg);
+					std::string echo = msg + "\r\n";
+					send(_poll_fds[i].fd, echo.c_str(), echo.size(), 0);
+				}
+				catch (Parsing::NeedMoreParamsException&)
+				{
+					std::string err = "461 :Not enough parameters\r\n";
+					send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+				}
+				catch (Parsing::TooManyParamsException&) {}
+				catch (Parsing::UnknownCommandException&)
+				{
+					std::string err = "421 :Unknown command\r\n";
+					send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+				}
+			}*/
+				
+			// ARREGLAR IDENTACION Y VER SI FUNCIONA LO DEL BUFFER ACUMULATIVO PARA COMANDOS PARTIDOS EN VARIAS LECTURAS. SI FUNCIONA, QUITAR LOS COMENTARIOS DE ARRIBA Y BORRAR ESTE CODIGO DE ABAJO.
+				// lectura
 				char buffer[512];
 				ssize_t bytes = recv(_poll_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
 				
                                 // Si no envia nada o falla, se desconecta y elimina.
                 if (bytes <= 0) 
                 {
-					close(_poll_fds[i].fd);
-					_poll_fds.erase(_poll_fds.begin() + i);
-					--i;
-					continue;
+				int client_fd = _poll_fds[i].fd;
+				close(client_fd);
+				removeClientBySocket(client_fd);
+				_poll_fds.erase(_poll_fds.begin() + i);
+				--i;
+				continue;
+			}
+
+			buffer[bytes] = '\0';
+			std::string msg(buffer);
+
+			if (!msg.empty() && msg[msg.size() -1] == '\n')
+				msg.erase(msg.size() - 1); 
+			if (!msg.empty() && msg[msg.size() - 1] == '\r')
+				msg.erase(msg.size() - 1);
+			try
+			{
+				Parsing	p(msg);
+				//p.parse();
+				//logica de ejecutar el comand
+				std::string echo = msg + "\r\n";
+				send(_poll_fds[i].fd, msg.c_str(), msg.size(), 0); //echo temp
+			}
+				catch(Parsing::NeedMoreParamsException&)
+				{
+					std::string err = "461: not enough parameters\r\n";
+					send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
 				}
-
-                // Convertir mensage a string,
-				buffer[bytes] = '\0';
-				std::string msg(buffer);
-
-				if (!msg.empty() && msg[msg.size() -1] == '\n')
-					msg.erase(msg.size() - 1); 
-				if (!msg.empty() && msg[msg.size() - 1] == '\r')
-					msg.erase(msg.size() - 1);
-				Parsing	parse(msg);
+				catch(Parsing::TooManyParamsException&)
+				{
+					std::string err = "461: too many parameters\r\n";
+					send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+				}
+				catch(Parsing::UnknownCommandException&)
+				{
+					std::string err = "421: unknown command\r\n";
+					send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+				}
 				//std::cout << "[recv] " << msg << std::endl; 
-				send(_poll_fds[i].fd, msg.c_str(), msg.size(), 0);
+				
 			}
 		}
 	}
@@ -103,10 +178,33 @@ int Server::getSocketFD() const
 {
     return _socketfd;
 }
+Client* Server::getClientBySocket(int socket)
+{
+	for (size_t i = 0; i < clients.size(); ++i)
+	{
+		if (clients[i]->getClientSocket() == socket)
+			return clients[i];
+	}
+	return NULL;
+}
 
+void Server::removeClientBySocket(int socket)
+{
+	for (size_t i = 0; i < clients.size(); ++i)
+	{
+		if (clients[i]->getClientSocket() == socket)
+		{
+			delete clients[i];
+			clients.erase(clients.begin() + i);
+			return;
+		}
+	}
+}
 Server::~Server()
 {
     for (size_t i = 0; i < channels.size(); ++i)
-        delete channels[i];
+		delete channels[i];
+	for (size_t i = 0; i < clients.size(); ++i)
+		delete clients[i];
     close(_socketfd);
 }

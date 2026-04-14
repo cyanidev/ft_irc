@@ -29,6 +29,8 @@ class Server
 		std::vector<Client*>  clients;
 
 		void socketInit();
+		Client* getClientBySocket(int socket);
+		void removeClientBySocket(int socket);
 	
 	public:
 

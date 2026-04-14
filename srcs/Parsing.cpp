@@ -1,12 +1,54 @@
 #include "Parsing.hpp"
 #include "Tokenizer.hpp"
 
-#define NUMBER_CMD 24
+#define NUMBER_CMD 17
 
-std::string commands[NUMBER_CMD] = {"ADMIN", "INFO", "VERSION", "USERS", "NICK", "PRIVMSG", "USER", "QUIT", "JOIN", "LIST", "NAMES", "SUMMON", "KICK", "PART", "MODE", "CAP", "PASS", "WHOIS", "INVITE", "TOPIC", "PING", "PONG"};
-std::string params[NUMBER_CMD][10] = {{"target"}, {"target"}, {}, {}, {"nickname"}, {"msgtarget", "text to be sent"}, {"user", "mode", "unused", "realname"}, {"Quit Message"}, {"channel", "key"}, {"channel"}, {"channel", "target"}, {"user", "target", "channel"}, {"channel", "user", "comment"}, {"channel", "Part Message"}, {"target", "modestring", "mode arguments"}, {"a"}, {"password"}, {"channel", "user", "comment"}, {"nickname", "channel"}, {"channel", "topic"}, {"token"}, {"token"}};
+std::string commands[NUMBER_CMD] = {
+    "PASS", "NICK", "USER", "JOIN", "PART",
+    "PRIVMSG", "NOTICE", "QUIT", "KICK", "INVITE",
+    "TOPIC", "MODE", "PING", "PONG", "CAP",
+    "WHO", "NAMES"
+};
 
-mode params_states[NUMBER_CMD][10] = {{Optional}, {Optional}, {}, {}, {Mandatory}, {Mandatory, Optional}, {Mandatory, Mandatory, Mandatory, Mandatory}, {Optional}, {List, ListOptional}, {ListOptional}, {ListOptional, Optional}, {Mandatory, Optional, Optional}, {List, List, Optional}, {List, Optional}, {Mandatory, Optional, MultiOptional}, {Optional}, {Mandatory}, {Mandatory, List, Optional}, {Mandatory, Mandatory}, {Mandatory, Optional}, {Mandatory}, {Mandatory}};
+std::string params[NUMBER_CMD][10] = {
+    {"password"},                                        // PASS
+    {"nickname"},                                        // NICK
+    {"user", "mode", "unused", "realname"},              // USER
+    {"channel", "key"},                                  // JOIN
+    {"channel", "Part Message"},                         // PART
+    {"msgtarget", "text"},                               // PRIVMSG
+    {"msgtarget", "text"},                               // NOTICE
+    {"Quit Message"},                                    // QUIT
+    {"channel", "user", "comment"},                      // KICK
+    {"nickname", "channel"},                             // INVITE
+    {"channel", "topic"},                                // TOPIC
+    {"target", "modestring", "mode arguments"},          // MODE
+    {"token"},                                           // PING
+    {"token"},                                           // PONG
+    {"subcommand"},                                      // CAP
+    {"mask"},                                            // WHO
+    {"channel"}                                          // NAMES
+};
+
+mode params_states[NUMBER_CMD][10] = {
+    {Mandatory},                                         // PASS
+    {Mandatory},                                         // NICK
+    {Mandatory, Mandatory, Mandatory, Mandatory},        // USER
+    {List, ListOptional},                                // JOIN
+    {List, Optional},                                    // PART
+    {Mandatory, Mandatory},                              // PRIVMSG
+    {Mandatory, Mandatory},                              // NOTICE
+    {Optional},                                          // QUIT
+    {List, List, Optional},                              // KICK
+    {Mandatory, Mandatory},                              // INVITE
+    {Mandatory, Optional},                               // TOPIC
+    {Mandatory, Optional, MultiOptional},                // MODE
+    {Mandatory},                                         // PING
+    {Mandatory},                                         // PONG
+    {Optional},                                          // CAP
+    {Optional},                                          // WHO
+    {ListOptional}                                       // NAMES
+};
 
 // Helper functions
 bool is_in_array(const std::string& value, const std::string array[], size_t size) {
