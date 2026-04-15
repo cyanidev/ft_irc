@@ -4,69 +4,74 @@
 #define NUMBER_CMD 17
 
 std::string commands[NUMBER_CMD] = {
-    "PASS", "NICK", "USER", "JOIN", "PART",
-    "PRIVMSG", "NOTICE", "QUIT", "KICK", "INVITE",
-    "TOPIC", "MODE", "PING", "PONG", "CAP",
-    "WHO", "NAMES"
-};
+	"PASS", "NICK", "USER", "JOIN", "PART",
+	"PRIVMSG", "NOTICE", "QUIT", "KICK", "INVITE",
+	"TOPIC", "MODE", "PING", "PONG", "CAP",
+	"WHO", "NAMES"};
 
 std::string params[NUMBER_CMD][10] = {
-    {"password"},                                        // PASS
-    {"nickname"},                                        // NICK
-    {"user", "mode", "unused", "realname"},              // USER
-    {"channel", "key"},                                  // JOIN
-    {"channel", "Part Message"},                         // PART
-    {"msgtarget", "text"},                               // PRIVMSG
-    {"msgtarget", "text"},                               // NOTICE
-    {"Quit Message"},                                    // QUIT
-    {"channel", "user", "comment"},                      // KICK
-    {"nickname", "channel"},                             // INVITE
-    {"channel", "topic"},                                // TOPIC
-    {"target", "modestring", "mode arguments"},          // MODE
-    {"token"},                                           // PING
-    {"token"},                                           // PONG
-    {"subcommand"},                                      // CAP
-    {"mask"},                                            // WHO
-    {"channel"}                                          // NAMES
+	{"password"},								// PASS
+	{"nickname"},								// NICK
+	{"user", "mode", "unused", "realname"},		// USER
+	{"channel", "key"},							// JOIN
+	{"channel", "Part Message"},				// PART
+	{"msgtarget", "text"},						// PRIVMSG
+	{"msgtarget", "text"},						// NOTICE
+	{"Quit Message"},							// QUIT
+	{"channel", "user", "comment"},				// KICK
+	{"nickname", "channel"},					// INVITE
+	{"channel", "topic"},						// TOPIC
+	{"target", "modestring", "mode arguments"}, // MODE
+	{"token"},									// PING
+	{"token"},									// PONG
+	{"subcommand"},								// CAP
+	{"mask"},									// WHO
+	{"channel"}									// NAMES
 };
 
 mode params_states[NUMBER_CMD][10] = {
-    {Mandatory},                                         // PASS
-    {Mandatory},                                         // NICK
-    {Mandatory, Mandatory, Mandatory, Mandatory},        // USER
-    {List, ListOptional},                                // JOIN
-    {List, Optional},                                    // PART
-    {Mandatory, Mandatory},                              // PRIVMSG
-    {Mandatory, Mandatory},                              // NOTICE
-    {Optional},                                          // QUIT
-    {List, List, Optional},                              // KICK
-    {Mandatory, Mandatory},                              // INVITE
-    {Mandatory, Optional},                               // TOPIC
-    {Mandatory, Optional, MultiOptional},                // MODE
-    {Mandatory},                                         // PING
-    {Mandatory},                                         // PONG
-    {Optional},                                          // CAP
-    {Optional},                                          // WHO
-    {ListOptional}                                       // NAMES
+	{Mandatory},								  // PASS
+	{Mandatory},								  // NICK
+	{Mandatory, Mandatory, Mandatory, Mandatory}, // USER
+	{List, ListOptional},						  // JOIN
+	{List, Optional},							  // PART
+	{Mandatory, Mandatory},						  // PRIVMSG
+	{Mandatory, Mandatory},						  // NOTICE
+	{Optional},									  // QUIT
+	{List, List, Optional},						  // KICK
+	{Mandatory, Mandatory},						  // INVITE
+	{Mandatory, Optional},						  // TOPIC
+	{Mandatory, Optional, MultiOptional},		  // MODE
+	{Mandatory},								  // PING
+	{Mandatory},								  // PONG
+	{Optional},									  // CAP
+	{Optional},									  // WHO
+	{ListOptional}								  // NAMES
 };
 
 // Helper functions
-bool is_in_array(const std::string& value, const std::string array[], size_t size) {
-    for (size_t i = 0; i < size; ++i) {
-        if (array[i] == value) {
-            return true;
-        }
-    }
-    return false;
+bool is_in_array(const std::string &value, const std::string array[], size_t size)
+{
+	for (size_t i = 0; i < size; ++i)
+	{
+		if (array[i] == value)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
-unsigned int get_array_index(const std::string& value, const std::string array[], size_t size) {
-    for (size_t i = 0; i < size; ++i) {
-        if (array[i] == value) {
-            return i;
-        }
-    }
-    return -1; // or throw exception, but assuming it's found
+unsigned int get_array_index(const std::string &value, const std::string array[], size_t size)
+{
+	for (size_t i = 0; i < size; ++i)
+	{
+		if (array[i] == value)
+		{
+			return i;
+		}
+	}
+	return -1; // or throw exception, but assuming it's found
 }
 
 Parsing::Parsing(std::string raw_content) : inputTokenizer(Tokenizer(raw_content)), current(0)
@@ -83,12 +88,12 @@ Parsing::Parsing(std::string raw_content) : inputTokenizer(Tokenizer(raw_content
 	parse();
 }
 
-void Parsing::command_to_upper(std::string & command)
+void Parsing::command_to_upper(std::string &command)
 {
-    for (std::string::iterator it = command.begin(); it != command.end(); it++)
-    {
-        *it = toupper(*it);
-    }
+	for (std::string::iterator it = command.begin(); it != command.end(); it++)
+	{
+		*it = toupper(*it);
+	}
 }
 
 // check if the command is in the predefined commands array
@@ -123,13 +128,13 @@ void Parsing::parse_no_arg()
 }
 
 // parameter spec for complex commands, iterates through the params
-//trying to match it with the tokens if missing throws, if too many tokens throws
+// trying to match it with the tokens if missing throws, if too many tokens throws
 void Parsing::parse_complex()
 {
 	unsigned int command_index = get_array_index(command, commands, NUMBER_CMD);
 	unsigned int i = 0;
-	std::string current_param = params[command_index][i] ;
-	mode current_type = params_states[command_index][i] ;
+	std::string current_param = params[command_index][i];
+	mode current_type = params_states[command_index][i];
 
 	while (!current_param.empty())
 	{
@@ -139,8 +144,8 @@ void Parsing::parse_complex()
 		}
 		move();
 		i++;
-		current_param = params[command_index][i] ;
-		current_type = params_states[command_index][i] ;
+		current_param = params[command_index][i];
+		current_type = params_states[command_index][i];
 	}
 	if (tokens.size() > i + 1 && command != "MODE")
 	{
@@ -157,28 +162,25 @@ std::string Parsing::get_current_token()
 	return (tokens[current]);
 }
 
-
-
-
 // splits on commas into a list
-std::list<std::string> Parsing::arg_to_list(const std::string& current_token)
+std::list<std::string> Parsing::arg_to_list(const std::string &current_token)
 {
-    std::list<std::string> args_list;
-    size_t start = 0;
-    size_t end = 0;
+	std::list<std::string> args_list;
+	size_t start = 0;
+	size_t end = 0;
 
-    while ((end = current_token.find(',', start)) != std::string::npos)
-    {
-        args_list.push_back(current_token.substr(start, end - start));
-        start = end + 1;
-    }
-    args_list.push_back(current_token.substr(start));
-    return args_list;
+	while ((end = current_token.find(',', start)) != std::string::npos)
+	{
+		args_list.push_back(current_token.substr(start, end - start));
+		start = end + 1;
+	}
+	args_list.push_back(current_token.substr(start));
+	return args_list;
 }
 
-//if arg is a list (JOIN #a,#b), split by commas
-// //if arg is MultiOptional (like MODE with multiple settings), 
-// consume the rest of the tokens otherwise, store a single string
+// if arg is a list (JOIN #a,#b), split by commas
+//  //if arg is MultiOptional (like MODE with multiple settings),
+//  consume the rest of the tokens otherwise, store a single string
 bool Parsing::set_current_arg(std::string arg_name, mode arg_type)
 {
 	try
@@ -199,25 +201,25 @@ bool Parsing::set_current_arg(std::string arg_name, mode arg_type)
 	}
 	catch (std::out_of_range const &e)
 	{
-		if ( arg_type == Mandatory || arg_type == List )
+		if (arg_type == Mandatory || arg_type == List)
 		{
-			return ( false );
+			return (false);
 		}
-		return ( true );
+		return (true);
 	}
-	return ( true );
+	return (true);
 }
 
 // for commands that can take unlimited trailing args
 //  (like MODE with multiple mode letters)
-std::list<std::string> Parsing::get_rest_tokens( std::string current_token )
+std::list<std::string> Parsing::get_rest_tokens(std::string current_token)
 {
 	std::list<std::string> arguments;
 	std::string token;
 	bool unfinished = true;
 
-	arguments.push_back( current_token );
-	while ( unfinished )
+	arguments.push_back(current_token);
+	while (unfinished)
 	{
 		try
 		{
@@ -225,7 +227,7 @@ std::list<std::string> Parsing::get_rest_tokens( std::string current_token )
 			token = get_current_token();
 			arguments.push_back(token);
 		}
-		catch(std::out_of_range & e)
+		catch (std::out_of_range &e)
 		{
 			(void)e;
 			unfinished = false;
@@ -236,25 +238,25 @@ std::list<std::string> Parsing::get_rest_tokens( std::string current_token )
 
 bool Parsing::set_current_arg_list(std::string arg_name)
 {
-    try
-    {
-        std::string current_token = get_current_token();
-        std::list<std::string> arg_list;
-        size_t start = 0, end = 0;
+	try
+	{
+		std::string current_token = get_current_token();
+		std::list<std::string> arg_list;
+		size_t start = 0, end = 0;
 
-        while ((end = current_token.find(',', start)) != std::string::npos)
-        {
-            arg_list.push_back(current_token.substr(start, end - start));
-            start = end + 1;
-        }
-        arg_list.push_back(current_token.substr(start));
-        args_lists[arg_name] = arg_list;
-        return true;
-    }
-    catch (std::out_of_range const &e)
-    {
-        return false;
-    }
+		while ((end = current_token.find(',', start)) != std::string::npos)
+		{
+			arg_list.push_back(current_token.substr(start, end - start));
+			start = end + 1;
+		}
+		arg_list.push_back(current_token.substr(start));
+		args_lists[arg_name] = arg_list;
+		return true;
+	}
+	catch (std::out_of_range const &e)
+	{
+		return false;
+	}
 }
 
 void Parsing::move()
@@ -284,7 +286,7 @@ std::vector<std::string> Parsing::get_tokens(void)
 
 bool Parsing::has_arg(std::string arg_name)
 {
-	if (args.count( arg_name ) == 0)
+	if (args.count(arg_name) == 0)
 	{
 		return (false);
 	}
@@ -293,27 +295,31 @@ bool Parsing::has_arg(std::string arg_name)
 
 bool Parsing::has_list(std::string arg_name)
 {
-	if (args_lists.count( arg_name ) == 0)
+	if (args_lists.count(arg_name) == 0)
 	{
 		return (false);
 	}
 	return (true);
 }
 
-
 Parsing::~Parsing() {}
 
-const char* Parsing::NeedMoreParamsException::what() const throw()
+const char *Parsing::NeedMoreParamsException::what() const throw()
 {
 	return ("Not enough parameters provided");
 }
 
-const char* Parsing::TooManyParamsException::what() const throw()
+const char *Parsing::TooManyParamsException::what() const throw()
 {
 	return ("Too many parameters provided");
 }
 
-const char* Parsing::UnknownCommandException::what() const throw()
+const char *Parsing::UnknownCommandException::what() const throw()
 {
 	return ("Unknown command");
+}
+
+void	Parsing::exec()
+{
+
 }

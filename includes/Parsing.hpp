@@ -58,6 +58,7 @@ class Parsing
 		bool set_current_arg_list(std::string arg_name);
 		void parse();
 		void move();
+		void exec();
 
 		class TooManyParamsException : public std::exception
 		{
