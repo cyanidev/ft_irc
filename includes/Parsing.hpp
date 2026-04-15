@@ -28,6 +28,7 @@ In IRC, if the message starts with :, it means
 #include <iostream>
 #include <map>
 #include "Tokenizer.hpp"
+#include "Server.hpp"
 
 enum mode {Mandatory, Optional, List, ListOptional, MultiOptional, Special};
 
@@ -38,8 +39,9 @@ class Parsing
 		std::string command; // irc command (NICK, USER, JOIN…)
 		Tokenizer inputTokenizer; // splits the input into tokens
 		std::vector<std::string> tokens; // holds tokens from the input
+		std::string	temppassword;
 		unsigned int current; // index of the current token being parsed
-
+		Server	*serv;
 		std::map<std::string, std::string> args; // stores named single arguments
 		std::map<std::string, std::list<std::string> > args_lists; // stores list arguments
 
@@ -51,14 +53,16 @@ class Parsing
 		void command_to_upper(std::string & command); // normalize command to uppercase ej: privmsg -> PRIVMSG
 	public:
 
-		Parsing(std::string raw_content); // takes a string like: NICK <nickname>
+		Parsing(std::string raw_content, Server *); // takes a string like: NICK <nickname>
 		virtual ~Parsing();
 		std::string get_current_token();
 		bool set_current_arg(std::string arg_name);
 		bool set_current_arg_list(std::string arg_name);
+		void setTemppassword(std::string);
 		void parse();
 		void move();
 		void exec();
+		void pass();
 
 		class TooManyParamsException : public std::exception
 		{

@@ -145,7 +145,7 @@ void Server::start()
 						msg.erase(msg.size() - 1);
 					try
 					{
-						Parsing	p(msg);
+						Parsing	p(msg, this);
 						//p.parse();
 						//logica de ejecutar el comand
 						std::string echo = msg + "\r\n";
@@ -205,4 +205,9 @@ Server::~Server()
 	for (size_t i = 0; i < clients.size(); ++i)
 		delete clients[i];
     close(_socketfd);
+}
+
+std::string	Server::get_password() const
+{
+	return (_password);
 }

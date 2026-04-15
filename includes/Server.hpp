@@ -18,7 +18,7 @@
 
 class Server
 {
-	private:
+	protected:
 
 		int _port;
 		int _socketfd;
@@ -31,6 +31,7 @@ class Server
 		void socketInit();
 		Client* getClientBySocket(int socket);
 		void removeClientBySocket(int socket);
+
 	
 	public:
 
@@ -42,6 +43,7 @@ class Server
 		int getSocketFD() const;
 
 		// Handle operations
+		std::string	get_password() const;
 		void	handleJoin(const std::string& name, const std::string& topic, class Client* creator);
 		void	handleKick(const std::string& name, class Client* user);
 		void	handleInvite(const std::string& name, class Client* user);

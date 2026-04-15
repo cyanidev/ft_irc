@@ -1,32 +1,23 @@
 #include "Parsing.hpp"
 #include "Tokenizer.hpp"
 
-#define NUMBER_CMD 17
+#define NUMBER_CMD 9
 
 std::string commands[NUMBER_CMD] = {
-	"PASS", "NICK", "USER", "JOIN", "PART",
-	"PRIVMSG", "NOTICE", "QUIT", "KICK", "INVITE",
-	"TOPIC", "MODE", "PING", "PONG", "CAP",
-	"WHO", "NAMES"};
+	"PASS", "NICK", "USER", "JOIN",
+	"PRIVMSG", "KICK", "INVITE",
+	"TOPIC", "MODE"};
 
 std::string params[NUMBER_CMD][10] = {
 	{"password"},								// PASS
 	{"nickname"},								// NICK
 	{"user", "mode", "unused", "realname"},		// USER
 	{"channel", "key"},							// JOIN
-	{"channel", "Part Message"},				// PART
 	{"msgtarget", "text"},						// PRIVMSG
-	{"msgtarget", "text"},						// NOTICE
-	{"Quit Message"},							// QUIT
 	{"channel", "user", "comment"},				// KICK
 	{"nickname", "channel"},					// INVITE
 	{"channel", "topic"},						// TOPIC
 	{"target", "modestring", "mode arguments"}, // MODE
-	{"token"},									// PING
-	{"token"},									// PONG
-	{"subcommand"},								// CAP
-	{"mask"},									// WHO
-	{"channel"}									// NAMES
 };
 
 mode params_states[NUMBER_CMD][10] = {
@@ -34,19 +25,11 @@ mode params_states[NUMBER_CMD][10] = {
 	{Mandatory},								  // NICK
 	{Mandatory, Mandatory, Mandatory, Mandatory}, // USER
 	{List, ListOptional},						  // JOIN
-	{List, Optional},							  // PART
 	{Mandatory, Mandatory},						  // PRIVMSG
-	{Mandatory, Mandatory},						  // NOTICE
-	{Optional},									  // QUIT
 	{List, List, Optional},						  // KICK
 	{Mandatory, Mandatory},						  // INVITE
 	{Mandatory, Optional},						  // TOPIC
 	{Mandatory, Optional, MultiOptional},		  // MODE
-	{Mandatory},								  // PING
-	{Mandatory},								  // PONG
-	{Optional},									  // CAP
-	{Optional},									  // WHO
-	{ListOptional}								  // NAMES
 };
 
 // Helper functions
@@ -74,7 +57,7 @@ unsigned int get_array_index(const std::string &value, const std::string array[]
 	return -1; // or throw exception, but assuming it's found
 }
 
-Parsing::Parsing(std::string raw_content) : inputTokenizer(Tokenizer(raw_content)), current(0)
+Parsing::Parsing(std::string raw_content, Server *temp) : inputTokenizer(Tokenizer(raw_content)), current(0), serv(temp)
 {
 	inputTokenizer.tokenize();
 	tokens = inputTokenizer.get_tokens();
@@ -86,6 +69,7 @@ Parsing::Parsing(std::string raw_content) : inputTokenizer(Tokenizer(raw_content
 	command_to_upper(command);
 	move(); // skip past the command, so current points at first argument
 	parse();
+	exec();
 }
 
 void Parsing::command_to_upper(std::string &command)
@@ -293,6 +277,11 @@ bool Parsing::has_arg(std::string arg_name)
 	return (true);
 }
 
+void Parsing::setTemppassword(std::string temp)
+{
+	temppassword = temp;
+}
+
 bool Parsing::has_list(std::string arg_name)
 {
 	if (args_lists.count(arg_name) == 0)
@@ -319,7 +308,43 @@ const char *Parsing::UnknownCommandException::what() const throw()
 	return ("Unknown command");
 }
 
-void	Parsing::exec()
+void	Parsing::exec() // funcion que se encarga de asignarle la funcion correspondiente respecto al comando
 {
+	unsigned int command_index = get_array_index(command, commands, NUMBER_CMD);
+	switch(command_index)
+	{
+		case 0:
+			pass();
+			break ;
+		case 1:
+			break ;
+		case 2:
+			break ;
+		case 3:
+			break ;
+		case 4:
+			break ;
+		case 5:
+			break ;
+		case 6:
+			break ;
+		case 7:
+			break ;
+		case 8:
+			break ;
+		default:
+			throw UnknownCommandException();
+	}
+}
 
+void	Parsing::pass()
+{
+	if (tokens[1] == serv->get_password())
+	{
+		// agregar bool para continuar con el resto de los comandos
+	}
+	else
+	{
+		// mostrar un error diciendo que la contraseña no coincide
+	}
 }
