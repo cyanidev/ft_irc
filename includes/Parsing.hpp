@@ -42,6 +42,7 @@ class Parsing
 		std::string	temppassword;
 		unsigned int current; // index of the current token being parsed
 		Server	*serv;
+		Client	*_client;
 		std::map<std::string, std::string> args; // stores named single arguments
 		std::map<std::string, std::list<std::string> > args_lists; // stores list arguments
 
@@ -53,7 +54,7 @@ class Parsing
 		void command_to_upper(std::string & command); // normalize command to uppercase ej: privmsg -> PRIVMSG
 	public:
 
-		Parsing(std::string raw_content, Server *); // takes a string like: NICK <nickname>
+		Parsing(std::string raw_content, Server *, Client *); // takes a string like: NICK <nickname>
 		virtual ~Parsing();
 		std::string get_current_token();
 		bool set_current_arg(std::string arg_name);
@@ -71,6 +72,18 @@ class Parsing
 		};
 
 		class NeedMoreParamsException : public std::exception
+		{
+			public:
+			virtual const char* what() const throw();
+		};
+
+		class WrongPasswordException : public std::exception
+		{
+			public :
+			virtual const char *what() const throw();
+		};
+
+		class MayNotReRegisterException : public std::exception
 		{
 			public:
 			virtual const char* what() const throw();

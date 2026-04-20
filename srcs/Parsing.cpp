@@ -57,7 +57,7 @@ unsigned int get_array_index(const std::string &value, const std::string array[]
 	return -1; // or throw exception, but assuming it's found
 }
 
-Parsing::Parsing(std::string raw_content, Server *temp) : inputTokenizer(Tokenizer(raw_content)), current(0), serv(temp)
+Parsing::Parsing(std::string raw_content, Server *temp, Client *temp2) : inputTokenizer(Tokenizer(raw_content)), current(0), serv(temp), _client(temp2)
 {
 	inputTokenizer.tokenize();
 	tokens = inputTokenizer.get_tokens();
@@ -293,6 +293,16 @@ bool Parsing::has_list(std::string arg_name)
 
 Parsing::~Parsing() {}
 
+const char *Parsing::MayNotReRegisterException::what() const throw()
+{
+	return ("May not reregistered");
+}
+
+const char *Parsing::WrongPasswordException::what() const throw()
+{
+	return ("Wrong Password");
+}
+
 const char *Parsing::NeedMoreParamsException::what() const throw()
 {
 	return ("Not enough parameters provided");
@@ -339,12 +349,10 @@ void	Parsing::exec() // funcion que se encarga de asignarle la funcion correspon
 
 void	Parsing::pass()
 {
+	if (_client->registeredStatus())
+		throw MayNotReRegisterException();
 	if (tokens[1] == serv->get_password())
-	{
-		// agregar bool para continuar con el resto de los comandos
-	}
+		_client->isRegistered();
 	else
-	{
-		// mostrar un error diciendo que la contraseña no coincide
-	}
+		throw WrongPasswordException();
 }

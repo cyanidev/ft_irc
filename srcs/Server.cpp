@@ -36,6 +36,7 @@ void Server::socketInit()
 void Server::start()
 {
 	// Añades el socket del servidor a la lista de poll
+	int client_fd;
 	pollfd server_fd;
 	server_fd.fd = _socketfd;
 	server_fd.events = POLLIN;
@@ -53,7 +54,7 @@ void Server::start()
 			//  Si el socket que tiene evento es el del servidor (_socketfd), significa que hay una nueva conexión entrante
 			if (_poll_fds[i].fd == _socketfd && (_poll_fds[i].revents & POLLIN)) 
             {
-				int client_fd = accept(_socketfd, NULL, NULL);
+				client_fd = accept(_socketfd, NULL, NULL);
 				if (client_fd < 0)
 					continue;
 
@@ -145,7 +146,7 @@ void Server::start()
 						msg.erase(msg.size() - 1);
 					try
 					{
-						Parsing	p(msg, this);
+						Parsing	p(msg, this, getClientBySocket(client_fd));
 						//p.parse();
 						//logica de ejecutar el comand
 						std::string echo = msg + "\r\n";
@@ -166,6 +167,16 @@ void Server::start()
 							std::string err = "421: unknown command\r\n";
 							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
 						}
+						catch(Parsing::WrongPasswordException&)
+						{
+							std::string err = "464: Password Incorrect\r\n";
+							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+						}
+						catch(Parsing::MayNotReRegisterException&)
+						{
+							std::string err = "462: May not reregister\r\n";
+							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+						}
 						//std::cout << "[recv] " << msg << std::endl; 
 			}
 		}
@@ -178,7 +189,7 @@ int Server::getSocketFD() const
 }
 Client* Server::getClientBySocket(int socket)
 {
-	for (size_t i = 0; i < clients.size(); ++i)
+	for (size_t i = 0; i < clients.size(); i++)
 	{
 		if (clients[i]->getClientSocket() == socket)
 			return clients[i];

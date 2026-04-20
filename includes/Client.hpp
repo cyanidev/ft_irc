@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: Andie <Andie@student.42.fr>                +#+  +:+       +#+        */
+/*   By: sbolivar <sbolivar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/05 13:13:30 by pollo             #+#    #+#             */
-/*   Updated: 2026/04/13 17:29:50 by Andie            ###   ########.fr       */
+/*   Updated: 2026/04/20 17:51:43 by sbolivar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ class Client {
 		std::string				_username;
         int						_socket;
         std::vector<Channel*>	_channels;
+		bool					registered;
 
     public:
 
@@ -41,6 +42,10 @@ class Client {
 		int	getClientSocket();
 		const std::string	getNickname() const;
 		const std::string	getUsername() const;
+		bool				registeredStatus() const;
+		void				isRegistered();
+		void				setNickname(std::string);
+		void				setUsername(std::string);
 		
 };
 #endif

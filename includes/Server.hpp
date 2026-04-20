@@ -12,8 +12,8 @@
 # include <netinet/in.h> // para sockaddr_in, htons, etc.
 # include <sys/socket.h> // para socket, bind, listen, accept
 # include <poll.h>       // para poll, pollfd
-#include "../includes/Channel.hpp"
-#include "../includes/Client.hpp"
+#include "Channel.hpp"
+#include "Client.hpp"
 
 
 class Server
@@ -29,12 +29,12 @@ class Server
 		std::vector<Client*>  clients;
 
 		void socketInit();
-		Client* getClientBySocket(int socket);
 		void removeClientBySocket(int socket);
-
-	
+		
+		
 	public:
-
+		
+		Client* getClientBySocket(int socket);
 		Server(const int &port, const std::string &password);
 		~Server();
 

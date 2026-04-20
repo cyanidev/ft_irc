@@ -5,7 +5,7 @@
 #include "../includes/Client.hpp"
 
 Client::Client(const std::string nickname, const std::string& username, const int socket)
-    : _nickname(nickname), _username(username), _socket(socket) {}
+    : _nickname(nickname), _username(username), _socket(socket), registered(false) {}
 
 Client::~Client() {}
 
@@ -22,4 +22,24 @@ const std::string Client::getNickname() const
 const std::string Client::getUsername() const
 {
     return _username;
+}
+
+void    Client::setNickname(std::string nick)
+{
+    _nickname = nick;
+}
+
+void    Client::setUsername(std::string user)
+{
+    _username = user;
+}
+
+bool    Client::registeredStatus() const
+{
+    return (registered);
+}
+
+void    Client::isRegistered()
+{
+    registered = true;
 }
