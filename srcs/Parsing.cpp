@@ -293,6 +293,11 @@ bool Parsing::has_list(std::string arg_name)
 
 Parsing::~Parsing() {}
 
+const char *Parsing::NicknameInUseException::what() const throw()
+{
+	return ("Nick name in use");
+}
+
 const char *Parsing::MayNotReRegisterException::what() const throw()
 {
 	return ("May not reregistered");
@@ -327,6 +332,7 @@ void	Parsing::exec() // funcion que se encarga de asignarle la funcion correspon
 			pass();
 			break ;
 		case 1:
+			nick();
 			break ;
 		case 2:
 			break ;
@@ -356,3 +362,23 @@ void	Parsing::pass()
 	else
 		throw WrongPasswordException();
 }
+
+void	Parsing::nick()
+{
+	if (_client->getNickname() == "")
+	{
+		if (serv->findClientByNick(tokens[1]))
+			throw NicknameInUseException();
+		_client->setNickname(tokens[1]);
+	}
+	else
+	{
+		if (tokens[1] == _client->getNickname())
+			return ;
+		if (serv->findClientByNick(tokens[1]))
+			throw NicknameInUseException();
+		else
+			_client->setNickname(tokens[1]);
+	}
+}
+

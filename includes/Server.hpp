@@ -33,8 +33,9 @@ class Server
 		
 		
 	public:
-		
 		Client* getClientBySocket(int socket);
+		bool		findClientByNick(std::string nick);
+		bool		findClientByUser(std::string user);
 		Server(const int &port, const std::string &password);
 		~Server();
 

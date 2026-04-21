@@ -129,9 +129,9 @@ void Server::start()
 				                                // Si no envia nada o falla, se desconecta y elimina.
 				    if (bytes <= 0) 
 				    {
-							int client_fd = _poll_fds[i].fd;
-							close(client_fd);
-							removeClientBySocket(client_fd);
+							int fd = _poll_fds[i].fd;
+							close(fd);
+							removeClientBySocket(fd);
 							_poll_fds.erase(_poll_fds.begin() + i);
 							--i;
 							continue;
@@ -146,7 +146,8 @@ void Server::start()
 						msg.erase(msg.size() - 1);
 					try
 					{
-						Parsing	p(msg, this, getClientBySocket(client_fd));
+						Client* client = getClientBySocket(_poll_fds[i].fd);
+						Parsing p(msg, this, client);
 						//p.parse();
 						//logica de ejecutar el comand
 						std::string echo = msg + "\r\n";
@@ -170,6 +171,11 @@ void Server::start()
 						catch(Parsing::WrongPasswordException&)
 						{
 							std::string err = "464: Password Incorrect\r\n";
+							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+						}
+						catch(Parsing::NicknameInUseException&)
+						{
+							std::string err = "433: Nick name in use\r\n";
 							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
 						}
 						catch(Parsing::MayNotReRegisterException&)
@@ -221,4 +227,24 @@ Server::~Server()
 std::string	Server::get_password() const
 {
 	return (_password);
+}
+
+bool		Server::findClientByNick(std::string nick)
+{
+	for (size_t i = 0; i < clients.size(); i++)
+	{
+		if (clients[i]->getNickname() == nick)
+			return true;
+	}
+	return false;
+}
+
+bool		Server::findClientByUser(std::string user)
+{
+	for (size_t i = 0; i < clients.size(); i++)
+	{
+		if (clients[i]->getUsername() == user)
+			return true;
+	}
+	return false;
 }

@@ -64,6 +64,13 @@ class Parsing
 		void move();
 		void exec();
 		void pass();
+		void nick();
+
+		class NicknameInUseException : public std::exception
+		{
+			public:
+			virtual const char* what() const throw();
+		};
 
 		class TooManyParamsException : public std::exception
 		{
@@ -104,7 +111,6 @@ class Parsing
 		std::list<std::string> arg_to_list(const std::string& current_token);
 		std::string get(std::string arg_name);
 		std::list<std::string> get_list(std::string arg_name);
-
 		bool has_arg(std::string arg_name);
 		std::vector<std::string> get_tokens();
 		bool has_list(std::string arg_name);
