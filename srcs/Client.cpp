@@ -43,3 +43,13 @@ void    Client::isRegistered()
 {
     registered = true;
 }
+
+void    Client::setRealname(std::string real)
+{
+    _realname = real;
+}
+
+const std::string	 Client::getRealname() const
+{
+    return (_realname);
+}

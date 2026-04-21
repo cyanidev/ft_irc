@@ -153,6 +153,16 @@ void Server::start()
 						std::string echo = msg + "\r\n";
 						send(_poll_fds[i].fd, msg.c_str(), msg.size(), 0); //echo temp
 					}
+						catch(Parsing::InvalidNickException&)
+						{
+							std::string err = "432: Invalid Nickname\r\n";
+							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+						}
+						catch(Parsing::NotRegisteredException&)
+						{
+							std::string err = "451: Client not registered\r\n";
+							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+						}
 						catch(Parsing::NeedMoreParamsException&)
 						{
 							std::string err = "461: not enough parameters\r\n";

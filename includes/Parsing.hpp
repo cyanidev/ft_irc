@@ -65,6 +65,19 @@ class Parsing
 		void exec();
 		void pass();
 		void nick();
+		void user();
+
+		class InvalidNickException : public std::exception
+		{
+			public:
+			virtual const char* what() const throw();
+		};
+
+		class NotRegisteredException : public std::exception
+		{
+			public:
+			virtual const char* what() const throw();
+		};
 
 		class NicknameInUseException : public std::exception
 		{

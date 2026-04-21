@@ -293,6 +293,11 @@ bool Parsing::has_list(std::string arg_name)
 
 Parsing::~Parsing() {}
 
+const char *Parsing::NotRegisteredException::what() const throw()
+{
+	return ("Client not registered");
+}
+
 const char *Parsing::NicknameInUseException::what() const throw()
 {
 	return ("Nick name in use");
@@ -323,6 +328,11 @@ const char *Parsing::UnknownCommandException::what() const throw()
 	return ("Unknown command");
 }
 
+const char *Parsing::InvalidNickException::what() const throw()
+{
+	return ("Invalid Nickname");
+}
+
 void	Parsing::exec() // funcion que se encarga de asignarle la funcion correspondiente respecto al comando
 {
 	unsigned int command_index = get_array_index(command, commands, NUMBER_CMD);
@@ -335,6 +345,7 @@ void	Parsing::exec() // funcion que se encarga de asignarle la funcion correspon
 			nick();
 			break ;
 		case 2:
+			user();
 			break ;
 		case 3:
 			break ;
@@ -365,6 +376,18 @@ void	Parsing::pass()
 
 void	Parsing::nick()
 {
+	if (!_client->registeredStatus())
+		throw NotRegisteredException();
+	if (tokens[1].size() > 9 || tokens[1].find(' ') != std::string::npos
+		|| tokens[1].find('@') != std::string::npos || tokens[1].find('!') != std::string::npos
+		|| tokens[1].find('#') != std::string::npos || tokens[1].find(':') != std::string::npos
+		|| tokens[1].find(',') != std::string::npos || tokens[1] == "")
+		throw InvalidNickException();
+	for (size_t i = 0; tokens[1].size() > i; i++)
+	{
+		if (tokens[1][i] < 32 || tokens[1][i] == 127)
+			throw InvalidNickException();
+	}
 	if (_client->getNickname() == "")
 	{
 		if (serv->findClientByNick(tokens[1]))
@@ -382,3 +405,28 @@ void	Parsing::nick()
 	}
 }
 
+void	Parsing::user()
+{
+	if (!_client->registeredStatus())
+		throw NotRegisteredException();
+	for (size_t j = 1; 4 > j; j++)
+	{
+		if (tokens[j].size() > 9 || tokens[j].find(' ') != std::string::npos
+		|| tokens[j].find('@') != std::string::npos || tokens[j].find('!') != std::string::npos
+		|| tokens[j].find('#') != std::string::npos || tokens[j].find(':') != std::string::npos
+		|| tokens[j].find(',') != std::string::npos || tokens[j] == "")
+			throw NeedMoreParamsException();
+		for (size_t i = 0; tokens[j].size() > i; i++)
+		{
+			if (tokens[j][i] < 32 || tokens[j][i] == 127)
+				throw NeedMoreParamsException();
+		}
+	}
+	if (_client->getUsername() == "")
+	{
+		_client->setUsername(tokens[1]);
+		_client->setRealname(tokens[4]);
+	}
+	else
+		throw MayNotReRegisterException();
+}

@@ -6,7 +6,7 @@
 /*   By: sbolivar <sbolivar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/05 13:13:30 by pollo             #+#    #+#             */
-/*   Updated: 2026/04/20 17:51:43 by sbolivar         ###   ########.fr       */
+/*   Updated: 2026/04/21 23:41:30 by sbolivar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class Client {
         
         std::string				_nickname;
 		std::string				_username;
+		std::string				_realname;
         int						_socket;
         std::vector<Channel*>	_channels;
 		bool					registered;
@@ -42,8 +43,10 @@ class Client {
 		int	getClientSocket();
 		const std::string	getNickname() const;
 		const std::string	getUsername() const;
+		const std::string	getRealname() const;
 		bool				registeredStatus() const;
 		void				isRegistered();
+		void				setRealname(std::string); 
 		void				setNickname(std::string);
 		void				setUsername(std::string);
 		
