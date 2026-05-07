@@ -12,8 +12,10 @@
 # include <netinet/in.h> // para sockaddr_in, htons, etc.
 # include <sys/socket.h> // para socket, bind, listen, accept
 # include <poll.h>       // para poll, pollfd
+# include <map>
 #include "Channel.hpp"
 #include "Client.hpp"
+
 
 
 class Server
@@ -27,6 +29,8 @@ class Server
 		std::vector<struct pollfd> _poll_fds;
 		std::vector<Channel*> channels;
 		std::vector<Client*>  clients;
+
+		std::map<int, std::string> _clients_buffer;
 
 		void socketInit();
 		void removeClientBySocket(int socket);

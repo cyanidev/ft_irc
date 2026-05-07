@@ -4,22 +4,23 @@
 #include "Channel.hpp"
 
 
-void	Server::handleJoin(const std::string& name, const std::string& topic, class Client* creator) {
+void	Server::handleJoin(const std::string& name, const std::string& topic, class Client* creator)
+{
 	if (name.empty() || topic.empty() || creator == NULL) {
 		std::cerr << "Invalid channel parameters" << std::endl;
 		return;
 	}
-	for (size_t i = 0; i < channels.size(); ++i) {
-		if (channels[i]->getChannelName() == "#" + name) {
-			std::cout << "Channel " << channels[i]->getChannelName() << " already exists" << std::endl;
+	for (size_t i = 0; i < channels.size(); ++i)
+	{
+		if (channels[i]->getName() == "#" + name)
+		{
+			std::cout << "Channel " << channels[i]->getName() << " already exists" << std::endl;
 			channels[i]->addUser(creator);
 			return;
 		}
 	}
 	Channel *newChannel = new Channel(name, topic, creator);
 	channels.push_back(newChannel);
-	channels[channels.size() - 1]->addUser(creator);
-	channels[channels.size() - 1]->addOperator(creator);
 }
 
 void	Server::handleKick(const std::string& Channel, class Client* user) {
@@ -28,7 +29,7 @@ void	Server::handleKick(const std::string& Channel, class Client* user) {
 		return;
 	}
 	for (size_t i = 0; i < channels.size(); ++i) {
-		if (channels[i]->getChannelName() == "#" + Channel) {
+		if (channels[i]->getName() == "#" + Channel) {
 			channels[i]->removeUser(user);
 			return;
 		}
@@ -36,14 +37,19 @@ void	Server::handleKick(const std::string& Channel, class Client* user) {
 	std::cerr << "Channel " << Channel << " not found" << std::endl;
 }
 
-void	Server::handleInvite(const std::string& Channel, class Client* user) {
+//si el canal es inviteonly? si el usuario fu einvitado
+void	Server::handleInvite(const std::string& Channel, class Client* user)
+{
 	if (Channel.empty() || user == NULL) {
 		std::cerr << "Invalid parameters" << std::endl;
 		return;
 	}
-	for (size_t i = 0; i < channels.size(); ++i) {
-		if (channels[i]->getChannelName() == "#" + Channel) {
+	for (size_t i = 0; i < channels.size(); ++i)
+	{
+		if (channels[i]->getName() == "#" + Channel)
+		{
 			channels[i]->addUser(user);
+			std::cout << user->getNickname() << " invited to channel: " << Channel << std::endl;
 			return;
 		}
 	}
@@ -56,8 +62,8 @@ void	Server::handleTopic(const std::string& Channel, const std::string& topic) {
 		return;
 	}
 	for (size_t i = 0; i < channels.size(); ++i) {
-		if (channels[i]->getChannelName() == "#" + Channel) {
-			channels[i]->setChannelTopic(topic);
+		if (channels[i]->getName() == "#" + Channel) {
+			channels[i]->setTopic(topic);
 			std::cout << "Topic for channel " << Channel << " set to: " << topic << std::endl;
 			return;
 		}
@@ -71,30 +77,24 @@ void	Server::handleMode(const std::string& Channel, const std::string& mode, boo
 		return;
 	}
 	for (size_t i = 0; i < channels.size(); ++i) {
-		if (channels[i]->getChannelName() == Channel) {
+		if (channels[i]->getName() == Channel) {
 			if (mode == "i") {
-				if (channels[i]->getInviteOnlyChannel() != enable) {
-					channels[i]->setInviteOnlyChannel(enable);
+				if (channels[i]->isInviteOnly() != enable) {
+					channels[i]->setInviteOnly(enable);
 				}
 				std::cout << "Invite-only mode for channel " << Channel << " set to: " << (enable ? "true" : "false") << std::endl;
 			}
 			else if (mode == "t") {
-				if (channels[i]->getRestrictedTopic() != enable) {
+				if (channels[i]->isRestrictedTopic() != enable) {
 					channels[i]->setRestrictedTopic(enable);
 				}
 				std::cout << "Restricted topic mode for channel " << Channel << " set to: " << (enable ? "true" : "false") << std::endl;
 			}
 			else if (mode == "k") {
-				if (channels[i]->getChannelKeyRequired() != enable) {
-					channels[i]->setChannelKeyRequired(enable);
+				if (channels[i]->isKeyRequired() != enable) {
+					channels[i]->setKeyRequired(enable);
 				}
 				std::cout << "Channel key required mode for channel " << Channel << " set to: " << (enable ? "true" : "false") << std::endl;
-			}
-			else if (mode == "o") {
-				if (channels[i]->getChannelOperatorPrivilege() != enable) {
-					channels[i]->setChannelOperatorPrivilege(enable);
-				}
-				std::cout << "Channel operator privilege mode for channel " << Channel << " set to: " << (enable ? "true" : "false") << std::endl;
 			}
 			else
 				std::cerr << "Unknown mode: " << mode << std::endl;
@@ -110,7 +110,7 @@ void	Server::handleMode(const std::string& Channel, const std::string& mode, int
 		return;
 	}
 	for (size_t i = 0; i < channels.size(); ++i) {
-		if (channels[i]->getChannelName() == "#" + Channel) {
+		if (channels[i]->getName() == "#" + Channel) {
 			if (number != channels[i]->getMaxUsers()) {
 				channels[i]->setMaxUsers(number);
 				std::cout << "Max users for Channel " << Channel << " set to: " << number << std::endl;

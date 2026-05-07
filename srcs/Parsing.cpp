@@ -366,17 +366,17 @@ void	Parsing::exec() // funcion que se encarga de asignarle la funcion correspon
 
 void	Parsing::pass()
 {
-	if (_client->registeredStatus())
+	if (_client->isRegistered())
 		throw MayNotReRegisterException();
 	if (tokens[1] == serv->get_password())
-		_client->isRegistered();
+		_client->setRegistered(true);
 	else
 		throw WrongPasswordException();
 }
 
 void	Parsing::nick()
 {
-	if (!_client->registeredStatus())
+	if (!_client->isRegistered())
 		throw NotRegisteredException();
 	if (tokens[1].size() > 9 || tokens[1].find(' ') != std::string::npos
 		|| tokens[1].find('@') != std::string::npos || tokens[1].find('!') != std::string::npos
@@ -407,7 +407,7 @@ void	Parsing::nick()
 
 void	Parsing::user()
 {
-	if (!_client->registeredStatus())
+	if (!_client->isRegistered())
 		throw NotRegisteredException();
 	for (size_t j = 1; 4 > j; j++)
 	{

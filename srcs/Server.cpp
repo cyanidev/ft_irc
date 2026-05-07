@@ -36,16 +36,17 @@ void Server::socketInit()
 void Server::start()
 {
 	// Añades el socket del servidor a la lista de poll
-	int client_fd;
 	pollfd server_fd;
 	server_fd.fd = _socketfd;
 	server_fd.events = POLLIN;
+	server_fd.revents = 0;
 	_poll_fds.push_back(server_fd);
 
 	while (true) 
     {
 		int ret = poll(_poll_fds.data(), _poll_fds.size(), -1); //_poll_fds.data() da acceso al array interno del vector y poll_fds.size() es cuántos sockets vamos a vigilar. El -1 es para que lo haga permanentemente.
-        if (ret < 0)
+        
+		if (ret < 0)
 			throw std::runtime_error("poll failed");
 
                 // Recorre todos los sockets registrados para ver cuáles tienen eventos pendientes
@@ -54,7 +55,7 @@ void Server::start()
 			//  Si el socket que tiene evento es el del servidor (_socketfd), significa que hay una nueva conexión entrante
 			if (_poll_fds[i].fd == _socketfd && (_poll_fds[i].revents & POLLIN)) 
             {
-				client_fd = accept(_socketfd, NULL, NULL);
+				int client_fd = accept(_socketfd, NULL, NULL);
 				if (client_fd < 0)
 					continue;
 
@@ -63,87 +64,141 @@ void Server::start()
 
 				// crear el objeto Client para la nueva conexión
 				Client* new_client = new Client("", "", client_fd);
+
 				clients.push_back(new_client);
 
-                                // se registra el nuevo cliente en poll_fds, para que poll() esté atento a lo que envía ese cliente.
+                 // se registra el nuevo cliente en poll_fds, para que poll() esté atento a lo que envía ese cliente.
 				pollfd client_poll;
+				
 				client_poll.fd = client_fd;
 				client_poll.events = POLLIN;
+				client_poll.revents = 0;
+
 				_poll_fds.push_back(client_poll);
+
+				_clients_buffer[client_fd] = ""; // inicializar el buffer para ese cliente
+				
 				std::cout << "Welcome to IRC" << std::endl;
 				std::cout << "New client connected: fd=" << client_fd << std::endl;
 			}
 			// Si no es el servidor, entonces es un cliente con datos listos para leer
 			else if (_poll_fds[i].revents & POLLIN) 
             {
-
+				int fd = _poll_fds[i].fd;
 				char buffer[512];
-				ssize_t bytes = recv(_poll_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+				ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+				//desconección
+				if (bytes <= 0)
+				{
+					close(fd);
+					_clients_buffer.erase(fd);
+					removeClientBySocket(fd);
+					_poll_fds.erase(_poll_fds.begin() + i);
+					--i;
+					std::cout << "Client disconnected: fd=" << fd << std::endl;
+					continue;
+				}
+				//lo del buffer acumulativo para comandos partidos en varias lecturas
+				buffer[bytes] = '\0';
+				_clients_buffer[fd] += buffer;
 
-				// if (bytes <= 0)
-				// {
-				//     int client_fd = _poll_fds[i].fd;
-				//     close(client_fd);
-				//     _clients_buffer.erase(client_fd);
-				//     removeClientBySocket(client_fd);
-				//     _poll_fds.erase(_poll_fds.begin() + i);
-				//     --i;
-				//     continue;
-				// }
-				/*
-							buffer[bytes] = '\0';
-							_clients_buffer[_poll_fds[i].fd] += buffer;
+				std::string& buf = _clients_buffer[fd];
 
-							std::string& buf = _clients_buffer[_poll_fds[i].fd];
-							size_t pos;
-							while ((pos = buf.find("\r\n")) != std::string::npos)
+				size_t pos;
+				//se procesas mensajes completos (terminados en \r\n) uno por uno
+				while ((pos = buf.find("\r\n")) != std::string::npos)
+				{
+					std::string msg = buf.substr(0, pos);
+					buf.erase(0, pos + 2);
+					if (msg.empty())
+						continue;
+					try
+					{
+						Client* client = getClientBySocket(fd);
+						Parsing p(msg, this, client);
+
+						std::string echo = msg + "\r\n";
+
+						client->appendSendBuffer(echo);
+						for (size_t j = 0; j < _poll_fds.size(); ++j)
+						{
+							if (_poll_fds[j].fd == fd)
 							{
-								std::string msg = buf.substr(0, pos);
-								buf.erase(0, pos + 2);
-								if (msg.empty())
-									continue;
-								try
-								{
-									Parsing p(msg);
-									std::string echo = msg + "\r\n";
-									send(_poll_fds[i].fd, echo.c_str(), echo.size(), 0);
-								}
-								catch (Parsing::NeedMoreParamsException&)
-								{
-									std::string err = "461 :Not enough parameters\r\n";
-									send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-								}
-								catch (Parsing::TooManyParamsException&) {}
-								catch (Parsing::UnknownCommandException&)
-								{
-									std::string err = "421 :Unknown command\r\n";
-									send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-								}
-							}*/
-
-							// ARREGLAR IDENTACION Y VER SI FUNCIONA LO DEL BUFFER ACUMULATIVO PARA COMANDOS PARTIDOS EN VARIAS LECTURAS. SI FUNCIONA, QUITAR LOS COMENTARIOS DE ARRIBA Y BORRAR ESTE CODIGO DE ABAJO.
-								// lectura
-					// char buffer1[512];
-					// ssize_t bytes1 = recv(_poll_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
-
-				                                // Si no envia nada o falla, se desconecta y elimina.
-				    if (bytes <= 0) 
-				    {
-							int fd = _poll_fds[i].fd;
-							close(fd);
-							removeClientBySocket(fd);
-							_poll_fds.erase(_poll_fds.begin() + i);
-							--i;
-							continue;
+								_poll_fds[j].events |= POLLOUT; // marcar para escritura
+								break;
+							}
+						}
 					}
-					
-					buffer[bytes] = '\0';
-					std::string msg(buffer);
+					catch (Parsing::InvalidNickException&)
+					{
+						std::string err = "432 :Invalid Nickname\r\n";
+						send(fd, err.c_str(), err.size(), 0);
+					}
+					catch (Parsing::NotRegisteredException&)
+					{
+						std::string err = "451 :Client not registered\r\n";
+						send(fd, err.c_str(), err.size(), 0);
+					}
+					catch (Parsing::NeedMoreParamsException&)
+					{
+						std::string err = "461 :Not enough parameters\r\n";
+						send(fd, err.c_str(), err.size(), 0);
+					}
+					catch (Parsing::TooManyParamsException&)
+					{
+						std::string err = "461 :Too many parameters\r\n";
+						send(fd, err.c_str(), err.size(), 0);
+					}
+					catch (Parsing::WrongPasswordException&)
+					{
+						std::string err = "464 :Password Incorrect\r\n";
+						send(fd, err.c_str(), err.size(), 0);
+					}
+					catch (Parsing::NicknameInUseException&)
+					{
+						std::string err = "433 :Nick name in use\r\n";
+						send(fd, err.c_str(), err.size(), 0);
+					}
+					catch (Parsing::MayNotReRegisterException&)
+					{
+						std::string err = "462 :May not reregister\r\n";
+						send(fd, err.c_str(), err.size(), 0);
+					}
+					catch (Parsing::UnknownCommandException&)
+					{
+						std::string err = "421 :Unknown command\r\n";
+						send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+					}
+				}
+			}
+			else if(_poll_fds[i].revents & POLLIN)
+			{
+				int fd = _poll_fds[i].fd;
+				char buffer[512];
+				ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+			
+				if (bytes <= 0) 
+				{
+					close(fd);
+					_clients_buffer.erase(fd);
+					removeClientBySocket(fd);
+					_poll_fds.erase(_poll_fds.begin() + i);
+					--i;
+					std::cout << "Client disconnected: fd=" << fd << std::endl;
+					continue;
+				}
+				buffer[bytes] = '\0';
+				_clients_buffer[fd] += buffer;
+				std::string& client_buffer = _clients_buffer[fd];
+				size_t pos;
 				
-					if (!msg.empty() && msg[msg.size() -1] == '\n')
-						msg.erase(msg.size() - 1); 
-					if (!msg.empty() && msg[msg.size() - 1] == '\r')
-						msg.erase(msg.size() - 1);
+				while ((pos = client_buffer.find("\r\n")) != std::string::npos) 
+				{
+					std::string msg = client_buffer.substr(0, pos);
+					client_buffer.erase(0, pos + 2);
+					if (msg.empty())
+						continue;
+				
 					try
 					{
 						Client* client = getClientBySocket(_poll_fds[i].fd);
@@ -151,49 +206,71 @@ void Server::start()
 						//p.parse();
 						//logica de ejecutar el comand
 						std::string echo = msg + "\r\n";
-						send(_poll_fds[i].fd, msg.c_str(), msg.size(), 0); //echo temp
+						client->appendSendBuffer(echo);
+						for (size_t j = 0; j < _poll_fds.size(); ++j)
+						{
+							if (_poll_fds[j].fd == fd)
+							{
+								_poll_fds[j].events |= POLLOUT; // marcar para escritura
+								break;
+							}
+						}
 					}
-						catch(Parsing::InvalidNickException&)
-						{
-							std::string err = "432: Invalid Nickname\r\n";
-							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-						}
-						catch(Parsing::NotRegisteredException&)
-						{
-							std::string err = "451: Client not registered\r\n";
-							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-						}
-						catch(Parsing::NeedMoreParamsException&)
-						{
-							std::string err = "461: not enough parameters\r\n";
-							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-						}
-						catch(Parsing::TooManyParamsException&)
-						{
-							std::string err = "461: too many parameters\r\n";
-							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-						}
-						catch(Parsing::UnknownCommandException&)
-						{
-							std::string err = "421: unknown command\r\n";
-							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-						}
-						catch(Parsing::WrongPasswordException&)
-						{
-							std::string err = "464: Password Incorrect\r\n";
-							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-						}
-						catch(Parsing::NicknameInUseException&)
-						{
-							std::string err = "433: Nick name in use\r\n";
-							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-						}
-						catch(Parsing::MayNotReRegisterException&)
-						{
-							std::string err = "462: May not reregister\r\n";
-							send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
-						}
-						//std::cout << "[recv] " << msg << std::endl; 
+					catch(Parsing::InvalidNickException&)
+					{
+						std::string err = "432: Invalid Nickname\r\n";
+						send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+					}
+					catch(Parsing::NotRegisteredException&)
+					{
+						std::string err = "451: Client not registered\r\n";
+						send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+					}
+					catch(Parsing::NeedMoreParamsException&)
+					{
+						std::string err = "461: not enough parameters\r\n";
+						send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+					}
+					catch(Parsing::TooManyParamsException&)
+					{
+						std::string err = "461: too many parameters\r\n";
+						send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+					}
+					catch(Parsing::UnknownCommandException&)
+					{
+						std::string err = "421: unknown command\r\n";
+						send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+					}
+					catch(Parsing::WrongPasswordException&)
+					{
+						std::string err = "464: Password Incorrect\r\n";
+						send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+					}
+					catch(Parsing::NicknameInUseException&)
+					{
+						std::string err = "433: Nick name in use\r\n";
+						send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+					}
+					catch(Parsing::MayNotReRegisterException&)
+					{
+						std::string err = "462: May not reregister\r\n";
+						send(_poll_fds[i].fd, err.c_str(), err.size(), 0);
+					}
+					//std::cout << "[recv] " << msg << std::endl; 
+				}
+			}
+			else if (_poll_fds[i].revents & POLLOUT) 
+			{
+				int fd = _poll_fds[i].fd;
+
+				Client* client = getClientBySocket(fd);
+				
+				if (client == NULL)
+					continue;
+				
+				client->flushSendBuffer();
+				if (client->getSendBuffer().empty())
+					_poll_fds[i].events &= ~POLLOUT;
 			}
 		}
 	}
