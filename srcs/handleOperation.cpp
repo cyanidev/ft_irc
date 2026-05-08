@@ -15,7 +15,7 @@ Channel* Server::findChannel(const std::string& name)
 	std::string search = (name[0] == '#') ? name : "#" + name;
 	for (size_t i = 0; i < channels.size(); ++i)
 	{
-		if (channels[i]->getName() == name)
+		if (channels[i]->getName() == search)
 			return channels[i];
 	}
 	return NULL;
@@ -68,7 +68,7 @@ void	Server::handleJoin(Client* client, const std::string& channelName, const st
 		chan->addUser(client);
 		client->addChannel(chan);
 	}
-	chan->broadcastMessage(prefix(client) + " JOIN " + name + "\r\n", client);
+	chan->broadcastMessage(prefix(client) + " JOIN " + name + "\r\n", NULL);
 	if (chan->getTopic().empty()) 
 	{
 		client->sendMessage(":server 331 " + client->getNickname() + " " + name + " :No topic is set\r\n");

@@ -116,11 +116,11 @@ void Server::start()
 						Parsing p(msg, this, client);
 						for (size_t j = 0; j < _poll_fds.size(); ++j)
 						{
-							if (_poll_fds[j].fd == fd)
-							{
-								_poll_fds[j].events |= POLLOUT; // marcar para escritura
-								break;
-							}
+							if (_poll_fds[j].fd == _socketfd)
+								continue;
+							Client* pending = getClientBySocket(_poll_fds[j].fd);
+							if (pending && pending->hasPendingMessages())
+								_poll_fds[j].events |= POLLOUT;
 						}
 					}
 					catch(Parsing::InvalidNickException&)
