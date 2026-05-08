@@ -348,17 +348,23 @@ void	Parsing::exec() // funcion que se encarga de asignarle la funcion correspon
 			user();
 			break ;
 		case 3:
+			join();
 			break ;
 		case 4:
+			privmsg();
 			break ;
 		case 5:
+			kick();
 			break ;
 		case 6:
+			invite();
 			break ;
 		case 7:
+			topic();
 			break ;
 		case 8:
-			break ;
+			modeCmd();
+    break ;
 		default:
 			throw UnknownCommandException();
 	}
@@ -426,7 +432,157 @@ void	Parsing::user()
 	{
 		_client->setUsername(tokens[1]);
 		_client->setRealname(tokens[4]);
+		// welcome messages
+		std::string nick = _client->getNickname();
+		_client->sendMessage(":server 001 " + nick + " :Welcome to the IRC server " + nick + "\r\n");
+		_client->sendMessage(":server 002 " + nick + " :Your host is ircserv\r\n");
+		_client->sendMessage(":server 003 " + nick + " :This server was created today\r\n");
+		_client->sendMessage(":server 004 " + nick + " ircserv 1.0 o itkol\r\n");
 	}
 	else
 		throw MayNotReRegisterException();
+}
+
+void Parsing::join()
+{
+    if (!_client->isRegistered())
+        throw NotRegisteredException();
+
+    std::list<std::string> chans = get_list("channel");
+    std::list<std::string> keys  = has_list("key") ? get_list("key") : std::list<std::string>();
+
+    std::list<std::string>::iterator chanIt = chans.begin();
+    std::list<std::string>::iterator keyIt  = keys.begin();
+
+    while (chanIt != chans.end())
+	{
+        std::string key = (keyIt != keys.end()) ? *keyIt++ : "";
+        serv->handleJoin(_client, *chanIt, key);
+        ++chanIt;
+    }
+}
+
+void Parsing::privmsg()
+{
+    if (!_client->isRegistered())
+        throw NotRegisteredException();
+
+    std::string target = get("msgtarget");
+    std::string text   = get("text");
+    std::string msg    = ":" + _client->getNickname() + "!" + _client->getUsername()
+                         + "@localhost PRIVMSG " + target + " :" + text + "\r\n";
+
+    if (!target.empty() && target[0] == '#')
+	{
+        Channel* chan = serv->findChannel(target);
+        if (!chan)
+		{
+            _client->sendMessage(":server 403 " + _client->getNickname() + " " + target + " :No such channel\r\n");
+            return;
+        }
+        if (!chan->isUser(_client))
+		{
+            _client->sendMessage(":server 404 " + _client->getNickname() + " " + target + " :Cannot send to channel\r\n");
+            return;
+        }
+        chan->broadcastMessage(msg, _client);
+    }
+	else
+	{
+        Client* dest = serv->findClientByNickname(target);
+        if (!dest)
+		{
+            _client->sendMessage(":server 401 " + _client->getNickname() + " " + target + " :No such nick\r\n");
+            return;
+        }
+        dest->sendMessage(msg);
+    }
+}
+
+void Parsing::kick()
+{
+    if (!_client->isRegistered())
+        throw NotRegisteredException();
+
+    std::list<std::string> chans  = get_list("channel");
+    std::list<std::string> users  = get_list("user");
+    std::string reason = has_arg("comment") ? get("comment") : _client->getNickname();
+
+    std::list<std::string>::iterator chanIt = chans.begin();
+    std::list<std::string>::iterator userIt = users.begin();
+
+    while (chanIt != chans.end() && userIt != users.end())
+	{
+        Client* target = serv->findClientByNickname(*userIt);
+        if (!target)
+            _client->sendMessage(":server 401 " + _client->getNickname() + " " + *userIt + " :No such nick\r\n");
+        else
+            serv->handleKick(_client, target, *chanIt, reason);
+        ++chanIt;
+        ++userIt;
+    }
+}
+
+void Parsing::invite()
+{
+    if (!_client->isRegistered())
+        throw NotRegisteredException();
+
+    std::string nick     = get("nickname");
+    std::string chanName = get("channel");
+
+    Client* target = serv->findClientByNickname(nick);
+    if (!target)
+	{
+        _client->sendMessage(":server 401 " + _client->getNickname() + " " + nick + " :No such nick\r\n");
+        return;
+    }
+    serv->handleInvite(_client, target, chanName);
+}
+
+void Parsing::topic()
+{
+    if (!_client->isRegistered())
+        throw NotRegisteredException();
+
+    std::string chanName = get("channel");
+    bool        hasTopic = has_arg("topic");
+    std::string topic    = hasTopic ? get("topic") : "";
+
+    serv->handleTopic(_client, chanName, topic, hasTopic);
+}
+
+void Parsing::modeCmd()
+{
+    if (!_client->isRegistered())
+        throw NotRegisteredException();
+
+    std::string target = get("target");
+
+    if (!has_arg("modestring"))
+        return;
+
+    std::string modestring = get("modestring");
+
+    std::list<std::string> modeArgs;
+    if (has_list("mode arguments"))
+        modeArgs = get_list("mode arguments");
+
+    bool enable = true;
+    std::list<std::string>::iterator argIt = modeArgs.begin();
+
+    for (size_t i = 0; i < modestring.size(); ++i)
+	{
+        char c = modestring[i];
+        if (c == '+') { enable = true;  continue; }
+        if (c == '-') { enable = false; continue; }
+
+        std::string param = "";
+        if ((c == 'k' && enable) || c == 'o' || (c == 'l' && enable))
+		{
+            if (argIt != modeArgs.end())
+                param = *argIt++;
+        }
+        serv->handleMode(_client, target, c, enable, param);
+    }
 }

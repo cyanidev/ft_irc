@@ -29,7 +29,6 @@ class Server
 		std::vector<struct pollfd> _poll_fds;
 		std::vector<Channel*> channels;
 		std::vector<Client*>  clients;
-
 		std::map<int, std::string> _clients_buffer;
 
 		void socketInit();
@@ -37,25 +36,26 @@ class Server
 		
 		
 	public:
-		Client* getClientBySocket(int socket);
-		bool		findClientByNick(std::string nick);
-		bool		findClientByUser(std::string user);
 		Server(const int &port, const std::string &password);
 		~Server();
 
-		
-		void start();
-		int getSocketFD() const;
+		void 		start();
+		int			getSocketFD() const;
+		std::string	get_password() const;
+
+		//clientss y canales
+		Client*		getClientBySocket(int socket);
+		Client*		findClientByNickname(const std::string& nick);
+		bool		findClientByNick(std::string& nick);
+		bool		findClientByUser(std::string user);
+		Channel*	findChannel(const std::string& name);
 
 		// Handle operations
-		std::string	get_password() const;
-		void	handleJoin(const std::string& name, const std::string& topic, class Client* creator);
-		void	handleKick(const std::string& name, class Client* user);
-		void	handleInvite(const std::string& name, class Client* user);
-		void	handleTopic(const std::string& name, const std::string& topic);
-		void	handleMode(const std::string& name, const std::string& mode, bool enable);
-		void	handleMode(const std::string& channel, const std::string& mode, int number);
-
+		void handleJoin(Client* client, const std::string& channelName, const std::string& key);
+        void handleKick(Client* oper, Client* target, const std::string& channelName, const std::string& reason);
+        void handleInvite(Client* oper, Client* target, const std::string& channelName);
+        void handleTopic(Client* client, const std::string& channelName, const std::string& topic, bool hasTopic);
+        void handleMode(Client* oper, const std::string& channelName, char mode, bool enable, const std::string& param);
 };
 
 #endif

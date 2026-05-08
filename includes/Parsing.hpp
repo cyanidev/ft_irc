@@ -1,3 +1,18 @@
+#ifndef PARSING_H
+#define PARSING_H
+
+#include <algorithm>
+#include <cctype>
+#include <cstring>
+#include <exception>
+#include <stdexcept>
+#include <string>
+#include <vector>
+#include <list>
+#include <iostream>
+#include <map>
+#include "Tokenizer.hpp"
+#include "Server.hpp"
 
 /*PRIVMSG <msgtarget> <text to be sent>
 PRIVMSG is the command.
@@ -14,21 +29,6 @@ In IRC, if the message starts with :, it means
 “take the rest of the line as one parameter” 
 (so spaces are allowed).
 */
-#ifndef PARSING_H
-#define PARSING_H
-
-#include <algorithm>
-#include <cctype>
-#include <cstring>
-#include <exception>
-#include <stdexcept>
-#include <string>
-#include <vector>
-#include <list>
-#include <iostream>
-#include <map>
-#include "Tokenizer.hpp"
-#include "Server.hpp"
 
 enum mode {Mandatory, Optional, List, ListOptional, MultiOptional, Special};
 
@@ -66,6 +66,12 @@ class Parsing
 		void pass();
 		void nick();
 		void user();
+		void join();
+		void privmsg();
+		void kick();
+		void invite();
+		void topic();
+		void modeCmd();
 
 		class InvalidNickException : public std::exception
 		{
