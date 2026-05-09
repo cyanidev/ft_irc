@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: Andie <Andie@student.42.fr>                +#+  +:+       +#+        */
+/*   By: sbolivar <sbolivar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/05 13:13:30 by pollo             #+#    #+#             */
-/*   Updated: 2026/05/07 19:27:18 by Andie            ###   ########.fr       */
+/*   Updated: 2026/05/09 23:25:41 by sbolivar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ class Client {
 		
 		std::string				_recvBuffer;
 		std::string				_sendBuffer;
+		bool _disconnected;
 		
 
     public:
@@ -81,6 +82,9 @@ class Client {
 		bool	hasPendingMessages() const;
 		void	appendSendBuffer(const std::string& msg);
 		std::string& getSendBuffer();
+		bool isDisconnected() const;
+		void setDisconnected(bool val);
+		bool	get_register() const;
 		
 };
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: Andie <Andie@student.42.fr>                +#+  +:+       +#+        */
+/*   By: sbolivar <sbolivar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 09:51:45 by pollo             #+#    #+#             */
-/*   Updated: 2026/05/08 13:38:07 by Andie            ###   ########.fr       */
+/*   Updated: 2026/05/09 22:56:48 by sbolivar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,11 @@ bool Channel::isBanned(Client* user) const
 bool Channel::isInvited(Client* user) const
 {
 	return _invitedUsers.find(user) != _invitedUsers.end();
+}
+
+bool Channel::hasOperator() const
+{
+    return !_operators.empty();
 }
 
 // --- Gestión de usuarios ----------------------------------------

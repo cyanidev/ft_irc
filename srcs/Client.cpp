@@ -4,7 +4,7 @@
 #include "../includes/Channel.hpp"
 
 Client::Client(const std::string nickname, const std::string& username, const int socket)
-    : _nickname(nickname), _username(username), _socket(socket), _registered(false) {}
+    : _nickname(nickname), _username(username), _socket(socket), _registered(false), _disconnected(false) {}
 
 Client::~Client() {}
 
@@ -66,7 +66,9 @@ void    Client::setRegistered(bool val)
 
 bool    Client::isRegistered() const 
 {
-    return _registered;
+	if (_nickname == "" || _username == "" || !_registered)
+		return false;
+    return true;
 }
 
 //------------- canales
@@ -130,4 +132,19 @@ void Client::appendSendBuffer(const std::string& msg)
 std::string& Client::getSendBuffer()
 {
 	return _sendBuffer;
+}
+
+bool Client::isDisconnected() const
+{
+    return _disconnected;
+}
+
+void Client::setDisconnected(bool val)
+{
+    _disconnected = val;
+}
+
+bool	Client::get_register() const
+{
+	return (_registered);
 }

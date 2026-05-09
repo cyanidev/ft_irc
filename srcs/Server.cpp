@@ -114,6 +114,15 @@ void Server::start()
 					{
 						Client* client = getClientBySocket(_poll_fds[i].fd);
 						Parsing p(msg, this, client);
+						if (client && client->isDisconnected())
+    					{
+    					    close(fd);
+    					    _clients_buffer.erase(fd);
+    					    removeClientBySocket(fd);
+    					    _poll_fds.erase(_poll_fds.begin() + i);
+    					    --i;
+    					    break; // salir del while de mensajes, el cliente ya no existe
+    					}
 						for (size_t j = 0; j < _poll_fds.size(); ++j)
 						{
 							if (_poll_fds[j].fd == _socketfd)

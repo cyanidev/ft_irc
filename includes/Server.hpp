@@ -6,17 +6,15 @@
 # include <cstdlib>
 #include <iostream>
 # include <stdexcept>
-# include <cstring>      // para memset
-# include <unistd.h>     // para close
-# include <fcntl.h>      // para fcntl
-# include <netinet/in.h> // para sockaddr_in, htons, etc.
-# include <sys/socket.h> // para socket, bind, listen, accept
-# include <poll.h>       // para poll, pollfd
+# include <cstring>
+# include <unistd.h>
+# include <fcntl.h>
+# include <netinet/in.h>
+# include <sys/socket.h>
+# include <poll.h>
 # include <map>
 #include "Channel.hpp"
 #include "Client.hpp"
-
-
 
 class Server
 {
@@ -33,8 +31,8 @@ class Server
 
 		void socketInit();
 		void removeClientBySocket(int socket);
-		
-		
+		void removeChannel(Channel* chan); // elimina canal del vector y libera memoria
+
 	public:
 		Server(const int &port, const std::string &password);
 		~Server();
@@ -43,7 +41,7 @@ class Server
 		int			getSocketFD() const;
 		std::string	get_password() const;
 
-		//clientss y canales
+		// Clientes y canales
 		Client*		getClientBySocket(int socket);
 		Client*		findClientByNickname(const std::string& nick);
 		bool		findClientByNick(std::string& nick);
@@ -52,10 +50,12 @@ class Server
 
 		// Handle operations
 		void handleJoin(Client* client, const std::string& channelName, const std::string& key);
-        void handleKick(Client* oper, Client* target, const std::string& channelName, const std::string& reason);
-        void handleInvite(Client* oper, Client* target, const std::string& channelName);
-        void handleTopic(Client* client, const std::string& channelName, const std::string& topic, bool hasTopic);
-        void handleMode(Client* oper, const std::string& channelName, char mode, bool enable, const std::string& param);
+		void handleKick(Client* oper, Client* target, const std::string& channelName, const std::string& reason);
+		void handleInvite(Client* oper, Client* target, const std::string& channelName);
+		void handleTopic(Client* client, const std::string& channelName, const std::string& topic, bool hasTopic);
+		void handleMode(Client* oper, const std::string& channelName, char mode, bool enable, const std::string& param);
+		void handlePart(Client* client, const std::string& channelName, const std::string& reason); // nuevo
+		void handleQuit(Client* client, const std::string& reason);                                 // nuevo
 };
 
 #endif

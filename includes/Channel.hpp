@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: Andie <Andie@student.42.fr>                +#+  +:+       +#+        */
+/*   By: sbolivar <sbolivar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/05 13:13:13 by pollo             #+#    #+#             */
-/*   Updated: 2026/05/07 15:00:16 by Andie            ###   ########.fr       */
+/*   Updated: 2026/05/09 22:56:31 by sbolivar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ bool isUser(Client* user) const;
 bool isOperator(Client* user) const;
 bool isBanned(Client* user) const;
 bool isInvited(Client* user) const;
+bool hasOperator() const;
 
 // Gestión de usuarios
 void addUser(Client* user);
