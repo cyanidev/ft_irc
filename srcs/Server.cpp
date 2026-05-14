@@ -1,5 +1,13 @@
 #include "Server.hpp"
 #include "Parsing.hpp"
+#include <errno.h>
+
+volatile sig_atomic_t g_running = 1;
+
+void signalHandler(int)
+{
+	g_running = 0;
+}
 
 Server::Server(const int &port, const std::string &password)
     : _port(port), _password(password)
@@ -35,6 +43,7 @@ void Server::socketInit()
 
 void Server::start()
 {
+	signal(SIGINT, signalHandler);
 	// Añades el socket del servidor a la lista de poll
 	pollfd server_fd;
 	server_fd.fd = _socketfd;
@@ -42,12 +51,17 @@ void Server::start()
 	server_fd.revents = 0;
 	_poll_fds.push_back(server_fd);
 
-	while (true) 
+	while (g_running) 
     {
 		int ret = poll(_poll_fds.data(), _poll_fds.size(), -1); //_poll_fds.data() da acceso al array interno del vector y poll_fds.size() es cuántos sockets vamos a vigilar. El -1 es para que lo haga permanentemente.
         
 		if (ret < 0)
+		{
+			if (errno == EINTR && !g_running)
+				break;
+
 			throw std::runtime_error("poll failed");
+		}
 
                 // Recorre todos los sockets registrados para ver cuáles tienen eventos pendientes
 		for (size_t i = 0; i < _poll_fds.size(); ++i) 
@@ -190,6 +204,21 @@ void Server::start()
 			}
 		}
 	}
+	std::cout << "\nClosing server..." << std::endl;
+
+	for (size_t i = 0; i < clients.size(); ++i)
+	{
+		int fd = clients[i]->getClientSocket();
+
+		if (fd >= 0)
+			close(fd);
+	}
+
+	if (_socketfd >= 0)
+		close(_socketfd);
+
+	std::cout << "Server stopped cleanly"
+			  << std::endl;
 }
 
 int Server::getSocketFD() const 
@@ -251,3 +280,4 @@ bool	Server::findClientByUser(std::string user)
 	}
 	return false;
 }
+

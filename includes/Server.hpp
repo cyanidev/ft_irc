@@ -11,6 +11,7 @@
 # include <fcntl.h>
 # include <netinet/in.h>
 # include <sys/socket.h>
+# include <csignal>
 # include <poll.h>
 # include <map>
 #include "Channel.hpp"
